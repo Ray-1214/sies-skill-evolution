@@ -6,6 +6,9 @@ SIES 讓 LLM 代理在**模型權重全程凍結**的前提下成長：成長不
 收縮成複合技能、再依效用把技能分到活躍／冷卻／封存三層 —— 下一次規劃只載入活躍層。
 整個演化歷程是一堆人看得懂的 Markdown 與一份 `GRAPH_INDEX.md`，不是一坨權重。
 
+🔗 **互動展示**：https://ray-1214.github.io/sies-skill-evolution/demo/
+（技能圖、50 題長跑回放、誠實牆，瀏覽器直接開，不需安裝）
+
 ## 三個數字
 
 | | |
@@ -35,26 +38,26 @@ SIES 讓 LLM 代理在**模型權重全程凍結**的前提下成長：成長不
 邊依來源著色：其中 206 條由課程結構機械產生，4 條為收縮的工程不變式，
 6 條為手寫種子，由系統從統計學到的為 0 條。
 
-![圖 1 技能圖譜](docs/figures/fig1_skill_graph.png)
+<img src="docs/figures/fig1_skill_graph.png" width="560" alt="技能圖譜：38 個有邊的節點聚成一叢，節點依記憶分層著色、大小為效用值；右上一串橘色 bootstrap 邊是手寫種子，下方兩組綠色 contraction 邊各連著一個菱形複合技能；圖例標示 learned 邊為 0 條">
 
 **圖 2.** 50 題長跑的成長曲線，每 10 題取一個檢查點。右上「邊數」自 20 增至 216，
 但該成長幾乎全部來自課程路徑的機械落地（206 條），不代表系統學到了技能間
 的關聯；左上「節點數」97→110 才是 Φ-ii 實際插入新技能的結果。孤島率由
 76.3% 降至 65.5%，同樣來自課程結構而非學習。
 
-![圖 2 成長曲線](docs/figures/fig2_growth.png)
+![四宮格折線圖，橫軸為完成題數 10 到 50：節點數自 97 升至 110，邊數自 20 升至 216，孤島率自 76.3% 降至 65.5%，累計 verified 率在 74% 上下持平](docs/figures/fig2_growth.png)
 
 **圖 3.** 誠實牆：12 項宣稱與各自的證據來源。六項成立、三項部分成立、三項未達成。
 每一格都指向可用 `python scripts/sies_doctor.py` 重算的資料檔。
 
-![圖 3 誠實牆](docs/figures/fig3_honest_table.png)
+![誠實牆表格，12 列宣稱各自對應數值、證據來源與說明：6 列標示成立、3 列部分成立、3 列未達成；未達成的三列有淡紅底色，包含「系統學會技能間關聯」216 條邊中 0 條](docs/figures/fig3_honest_table.png)
 
 **圖 4.** 長跑第 1 題的三層驗證。管線完成（pipeline_success=true）、代理自認已完成
 （execution_completed=true），但獨立 oracle 檢查輸出檔案時發現 data.json 不存在
 （verified_success=false）。這正是三層 success schema 存在的理由：代理的自我
 報告不可作為成功的依據。
 
-![圖 4 三層驗證](docs/figures/fig4_longrun_task1.png)
+![長跑回放第 1 題的畫面，三層 success 區塊顯示 pipeline_success 為 true、execution_completed 為 true、verified_success 為 false，verify_detail 寫著「data.json 不存在」](docs/figures/fig4_longrun_task1.png)
 
 四張圖由 `python demo/export_figures.py`（headless chromium）從 `demo/index.html`
 產生，數字全部來自 `demo/data.json`。產生方式與可重現性見
