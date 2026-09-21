@@ -197,6 +197,7 @@ embedding_profile.py         ← 嵌入模型設定
 skills/                      ← 技能圖本體，110 個 SKILL.md
   GRAPH_INDEX.md               圖的唯一真相來源（節點、邊、來源標記）
   active/ (31，其中 5 個在 active/seed/)  cold/ (13)  archive/ (66)
+  其中 13 個種子技能改寫自開源專案，見 THIRD_PARTY_NOTICES.md
 
 demo/                        ← 離線單檔前端（見上方「demo 怎麼看」）
   index.html                   產出物，直接開這個

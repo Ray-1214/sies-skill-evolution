@@ -4,6 +4,7 @@ name: executing-plans
 description: "Use when executing an implementation plan task by task. Follows each task exactly, runs verification after each step, stops on failure rather than guessing."
 version: "1"
 author: "superpowers-seed"
+source: "https://github.com/obra/superpowers — skills/executing-plans/SKILL.md (MIT)"
 tags: [execution, task-following, verification]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===

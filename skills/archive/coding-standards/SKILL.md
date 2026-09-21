@@ -4,6 +4,7 @@ name: coding-standards
 description: "Use when writing or reviewing code. Covers naming conventions, function size limits, error handling patterns, code organization, and documentation requirements."
 version: "1"
 author: "ECC-seed"
+source: "https://github.com/affaan-m/everything-claude-code — .agents/skills/coding-standards/SKILL.md (MIT)"
 tags: [standards, code-quality, conventions]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===

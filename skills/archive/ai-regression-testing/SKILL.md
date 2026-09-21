@@ -4,6 +4,7 @@ name: ai-regression-testing
 description: "Use when verifying that changes to AI agent behavior have not degraded existing capabilities. Covers baseline comparison, output stability testing, and performance regression detection."
 version: "1"
 author: "ECC-seed"
+source: "https://github.com/affaan-m/everything-claude-code — docs/zh-CN/skills/ai-regression-testing/SKILL.md (MIT)"
 tags: [testing, regression, ai-quality]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===

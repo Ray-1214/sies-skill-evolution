@@ -4,6 +4,7 @@ name: agentic-engineering
 description: "Use when designing, debugging, or extending AI agent architectures. Covers agent loop design, tool integration, memory management, error recovery, and multi-agent orchestration."
 version: "1"
 author: "ECC-seed"
+source: "https://github.com/affaan-m/everything-claude-code — .kiro/skills/agentic-engineering/SKILL.md (MIT)"
 tags: [agent-design, architecture, patterns]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===

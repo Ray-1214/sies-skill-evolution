@@ -4,6 +4,7 @@ name: brainstorming
 description: "Use before writing any code when requirements are unclear. Asks questions one at a time to refine the idea, explores alternatives, writes a design document for user approval."
 version: "1"
 author: "superpowers-seed"
+source: "https://github.com/obra/superpowers — skills/brainstorming/SKILL.md (MIT)"
 tags: [design, requirements, ideation]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===

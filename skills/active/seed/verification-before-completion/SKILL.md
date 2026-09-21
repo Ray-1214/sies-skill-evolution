@@ -4,6 +4,7 @@ name: verification-before-completion
 description: "Use before claiming any task is done. Ensures the fix actually works by running tests, checking edge cases, and verifying the original issue is resolved. Prevents premature completion."
 version: "1"
 author: "superpowers-seed"
+source: "https://github.com/obra/superpowers — skills/verification-before-completion/SKILL.md (MIT)"
 tags: [verification, quality, completion]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===

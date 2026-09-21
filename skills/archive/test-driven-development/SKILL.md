@@ -4,6 +4,7 @@ name: test-driven-development
 description: "Use when implementing any new feature or fixing bugs. Strict RED-GREEN-REFACTOR cycle: write failing test first, write minimal code to pass, then refactor. Never write code before test."
 version: "1"
 author: "superpowers-seed"
+source: "https://github.com/obra/superpowers — skills/test-driven-development/SKILL.md (MIT)"
 tags: [testing, tdd, quality]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===

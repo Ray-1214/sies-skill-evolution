@@ -4,6 +4,7 @@ name: writing-plans
 description: "Use when breaking down an approved design into implementation tasks. Creates bite-sized tasks (2-5 min each) with exact file paths, complete code snippets, and verification steps."
 version: "1"
 author: "superpowers-seed"
+source: "https://github.com/obra/superpowers — skills/writing-plans/SKILL.md (MIT)"
 tags: [planning, task-decomposition, implementation]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===

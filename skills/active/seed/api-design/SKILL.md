@@ -4,6 +4,7 @@ name: api-design
 description: "Use when designing or reviewing API interfaces. Covers RESTful patterns, error response formats, versioning strategies, input validation, and documentation standards."
 version: "1"
 author: "ECC-seed"
+source: "https://github.com/affaan-m/everything-claude-code — .agents/skills/api-design/SKILL.md (MIT)"
 tags: [api, design, interfaces]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===

@@ -4,6 +4,7 @@ name: architecture-decision-records
 description: "Use when making or documenting significant technical decisions. Captures context, options considered, decision rationale, and consequences in a structured ADR format."
 version: "1"
 author: "ECC-seed"
+source: "https://github.com/affaan-m/everything-claude-code — docs/zh-CN/skills/architecture-decision-records/SKILL.md (MIT)"
 tags: [documentation, decisions, architecture]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===

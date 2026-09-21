@@ -4,6 +4,7 @@ name: systematic-debugging
 description: "Use when debugging any issue. Four-phase process: reproduce the problem, trace to root cause with evidence, implement targeted fix, verify with regression tests. Never skip phases."
 version: "1"
 author: "superpowers-seed"
+source: "https://github.com/obra/superpowers — skills/systematic-debugging/SKILL.md (MIT)"
 tags: [debugging, root-cause-analysis, verification]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===

@@ -4,6 +4,7 @@ name: writing-skills
 description: "Use when creating new SKILL.md files from proven techniques. Follows TDD for documentation: baseline test first, write skill, close loopholes. Ensures skills are discoverable and actionable."
 version: "1"
 author: "superpowers-seed"
+source: "https://github.com/obra/superpowers — skills/writing-skills/SKILL.md (MIT)"
 tags: [documentation, skill-creation, meta]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===

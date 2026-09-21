@@ -4,6 +4,7 @@ name: subagent-driven-development
 description: "Use when implementing a multi-task plan. Dispatches a fresh sub-agent per task, reviews output between tasks, enables fast iteration with two-stage review (spec compliance then code quality)."
 version: "1"
 author: "superpowers-seed"
+source: "https://github.com/obra/superpowers — skills/subagent-driven-development/SKILL.md (MIT)"
 tags: [sub-agent, delegation, multi-task]
 
 # === 論文 Definition 2 擴展欄位（agent-zero 會自動忽略，SIES 演化引擎使用）===
