@@ -1,0 +1,202 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tstruct v2 (W4)",
+  "description": "SIES A1 Task Decomposer output schema — Tstruct v2 with W4 constraint identification and goal clarification",
+  "type": "object",
+  "required": [
+    "task_id",
+    "original_task",
+    "input_type",
+    "domain",
+    "requirements_restatement",
+    "constraints",
+    "objectives",
+    "subtasks",
+    "risks_and_mitigations",
+    "clarification_needed"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "description": "Unique task identifier (e.g., T-a1b2c3d4)"
+    },
+    "original_task": {
+      "type": "string",
+      "description": "Original natural language task input"
+    },
+    "input_type": {
+      "type": "string",
+      "enum": ["code_task", "research_task", "analysis_task", "creative_task", "web_task"],
+      "description": "Task category classification"
+    },
+    "domain": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "software-engineering",
+          "research",
+          "data-analysis",
+          "content-creation",
+          "web-automation",
+          "system-ops",
+          "planning"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 2,
+      "description": "Domain labels aligned with SkillRL Task-Specific Skills categories"
+    },
+    "requirements_restatement": {
+      "type": "string",
+      "minLength": 10,
+      "description": "A1's restatement of the task in its own words (ECC Step 1)"
+    },
+    "constraints": {
+      "type": "object",
+      "description": "Structured constraints extracted from the task (W4)",
+      "properties": {
+        "time": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/constraint_entry" }
+            }
+          ],
+          "description": "Time/deadline constraints"
+        },
+        "resources": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/constraint_entry" }
+            }
+          ],
+          "description": "Resource/tool/budget constraints"
+        },
+        "format": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "array",
+              "items": { "$ref": "#/definitions/constraint_entry" }
+            }
+          ],
+          "description": "Output format constraints"
+        }
+      },
+      "required": ["time", "resources", "format"],
+      "additionalProperties": false
+    },
+    "objectives": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Verifiable success criteria (ECC Step 4)"
+    },
+    "subtasks": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/subtask" },
+      "minItems": 1,
+      "description": "Ordered subtask list forming a DAG"
+    },
+    "risks_and_mitigations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["risk", "mitigation"],
+        "properties": {
+          "risk": { "type": "string" },
+          "mitigation": { "type": "string" }
+        }
+      },
+      "description": "Anticipated risks and mitigation strategies (ECC Step 2)"
+    },
+    "clarification_needed": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 2,
+      "description": "0-2 clarifying questions for ambiguous tasks (W4)"
+    }
+  },
+  "definitions": {
+    "constraint_entry": {
+      "type": "object",
+      "required": ["constraint_id", "description", "source"],
+      "properties": {
+        "constraint_id": {
+          "type": "string",
+          "description": "Short identifier (C1, C2, etc.)"
+        },
+        "description": {
+          "type": "string",
+          "description": "What the constraint is"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["explicit", "inferred"],
+          "description": "Whether stated in task (explicit) or implied by context (inferred)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "subtask": {
+      "type": "object",
+      "required": [
+        "subtask_id",
+        "description",
+        "why",
+        "depends_on",
+        "risk_level",
+        "phase",
+        "expected_output",
+        "estimated_complexity"
+      ],
+      "properties": {
+        "subtask_id": {
+          "type": "string",
+          "description": "Subtask identifier (S1, S2, etc.)"
+        },
+        "description": {
+          "type": "string",
+          "description": "What to do"
+        },
+        "why": {
+          "type": "string",
+          "description": "Why this subtask is necessary (ECC planner requirement)"
+        },
+        "depends_on": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of subtask_ids this depends on (must form DAG)"
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": ["low", "medium", "high"]
+        },
+        "phase": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Execution phase (1-based). Same phase = parallelizable"
+        },
+        "expected_output": {
+          "type": "string",
+          "description": "What this subtask produces"
+        },
+        "estimated_complexity": {
+          "type": "string",
+          "enum": ["simple", "moderate", "complex"]
+        },
+        "risk_note": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "null" }
+          ],
+          "description": "Risk description (null if low risk)"
+        }
+      }
+    }
+  }
+}

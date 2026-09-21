@@ -1,0 +1,32 @@
+# SIES 執行期相依。版本 = 本機實際跑出 docs/figures/ 那份資料時的版本。
+#
+#     pip install -r requirements.txt
+#
+# 只裝這些就能跑完整管線（A1→A2→執行→A3→Φ）與 scripts/sies_doctor.py。
+
+# ── LLM / HTTP ──
+httpx==0.28.1
+requests==2.34.2
+PyYAML==6.0.3
+
+# ── 向量檢索 ──
+numpy==2.4.3
+pyarrow==23.0.1
+lancedb==0.30.1
+
+# ── 技能圖 ──
+networkx==3.6.1
+
+# ── 本機嵌入模型（embedding.device: cpu / cuda）──
+# 會連帶裝 torch（~2.5 GB）與 transformers。若 config.yaml 的 embedding 改用
+# 遠端 API（embedding_engine.py 的 remote 分支），這兩行可以不裝。
+sentence-transformers==5.3.0
+
+# ── 測試 ──
+# pytest 的收集範圍由 conftest.py 的 SAFE_TESTS 白名單決定，見 README「怎麼跑」。
+pytest==9.0.2
+
+# ── 重新產生 docs/figures/ 的四張圖（可選）──
+# 只有跑 demo/export_figures.py 才需要；裝完還要 `python -m playwright install chromium`。
+# playwright==1.63.0
+# pillow==12.1.1

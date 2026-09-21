@@ -1,0 +1,192 @@
+# ============================================================
+# SIES (Self-Iterative Evolutionary System) 系統配置
+# ============================================================
+#
+# ── 憑證 ─────────────────────────────────────────────────────
+# 本檔**不含任何金鑰**。`llm` 與 `llm_tier_b` 兩個區塊用 `api_key_env`
+# 指定要去哪個環境變數取值（agents/provider_support.py:64 的 api_key()）：
+# 有 `api_key_env` 就只讀環境變數，讀不到直接拋 ProviderError，不會
+# 靜默退回明文 `api_key`。
+#
+#     export SIES_LLM_API_KEY='你的金鑰'
+#     python scripts/w16_run.py ...
+#
+# 若你的推論端點不驗證金鑰（例如本機 llama.cpp / vLLM），隨便填一個
+# 非空字串即可：
+#
+#     export SIES_LLM_API_KEY='not-needed'
+#
+# 兩個 tier 要用不同金鑰的話，把其中一個的 `api_key_env` 改成別的變數名。
+# ─────────────────────────────────────────────────────────────
+
+# 硬體：13900K + RTX 4060 Ti 16GB
+# VRAM 預算（--no-base, coder parallel 2）：
+#   coder 權重 ~5.5GB + KV 32K×2slot ~4GB = ~9.5GB
+#   Embedding GPU ~1.2GB
+#   合計 ~10.7GB / 16GB，剩 ~5.3GB
+#
+# ⚠️ 以下兩行是**開發機上的路徑範例**，不是本 repo 的設定值。換到你自己的機器
+#    請照實改（推論伺服器裝在哪、這份 repo clone 到哪），或直接忽略 ——
+#    系統真正讀的是下面 `llm.base_url` 與 `system.project_root`，不是這兩行註解。
+# LLM Server: <YOUR_PATH>/reasoning_model_server/api_server.py :8080 --no-base
+# SIES 專案:  <YOUR_PATH>/sies-skill-evolution/
+
+# ── 效用函數（論文 Section 4.2）U(σ) = α·r + β·f - γc·c ──
+utility:
+  alpha: 0.4
+  beta: 0.4
+  gamma_cost: 0.2
+  gamma_decay: 0.1
+
+# ── 記憶分層閾值（論文 Definition 5）──
+memory_tiers:
+  theta_high: 0.7
+  theta_low: 0.3
+  epsilon_high: 0.05
+  epsilon_low: 0.05
+
+# ── 演化算子 Φ（論文 Definition 8）──
+evolution:
+  delta: 0.3
+  theta_dup: 0.80   # ⚠️ 死鍵，無任何 .py 讀取。實際生效的是下方 skill_validator.theta_dup (0.75)。
+                    # 2026-05-04 的 commit 8b29acc 改了這個鍵但沒有生效，保留作為歷史記錄。
+  max_skills: 200   # ⚠️ 死鍵，從未被讀取，技能庫目前無硬上限。Prop 1 的容量上限未實作。
+  # ⚠️ 四個鍵有讀取點，但唯一讀取者 EvolutionTriggers 在專案中沒有呼叫端。
+  #    evolution_log.jsonl 19 筆的 triggered_by 全部是 ["force"]。
+  triggers:
+    t1_enabled: true
+    t2_eta: 1.5
+    t2_window: 10 
+    t3_delta: 0.3
+
+# ── A2 Planner（論文 Eq. 20-21）──
+planner:
+  lambda1: 0.5
+  lambda2: 0.3
+  lambda3: 0.2
+  top_k: 6
+  max_tokens_for_skills: 2000
+  recent_traces: 3
+
+# ── A3 SkillValidator dedup 閾值 ──
+# [P2-2] 0.80 → 0.75。原本的 0.80 是在**錯的度量**上挑的：skill_validator 把
+# LanceDB 已經是平方距離的 _distance 又平方一次，使 `sim > 0.80` 實際等價於
+# 真 cos > 0.684。公式修正後（P2-2）加上索引補上執行策略段（P2-1），在重建後
+# 的索引上重挑：agglomerative(cosine, average) 在 cutoff 0.25（cos≥0.75）時
+# 三個真實同義族正確成群（algorithm-implementation-* 5 個 / test-driven-* 6 個
+# / multi-method-* 3 個），再鬆就開始把不同族併在一起。θ=0.75 會擋下 35/90 個
+# 技能的插入，與真實同義族的規模相符。
+# ⚠️ proposal/main.tex §4.4 目前寫 θdup = 0.80，論文送出前要一併更新。
+skill_validator:
+  theta_dup: 0.75
+
+# ── Agent-Zero 執行框架 ──
+agent_zero:
+  docker_enabled: true                # ← 改為 true
+  docker_image: "frdel/agent-zero:latest"
+  port: 50001
+  library_mode: false                 # ← 改為 false
+  container_name: "sies-agent-zero"   # ← 新增：docker exec 用的容器名
+  timeout: 300                        # ← 新增：指令超時
+  skills_dirs:
+    - "./skills/active"
+  max_subordinates: 3
+  custom_prompts_dir: "./agent_zero_prompts"
+
+# ── MetaClaw 技能注入 Proxy ──
+# ⚠️ 整個區塊 7 個鍵全部死鍵，MetaClaw 未安裝也未整合
+metaclaw:
+  enabled: false
+  mode: skills_only
+  proxy_port: 30000
+  skills_dir: "./skills/active"
+  auto_evolve: false
+  top_k: 6
+  retrieval_mode: embedding
+
+# ── 嵌入模型 ──
+embedding:
+  model: "nvidia/llama-embed-nemotron-8b"
+  device: "cpu"
+  fallback: "google/EmbeddingGemma-300M"
+  batch_size: 8
+  max_seq_length: 512
+
+# ── 向量儲存 ──
+vector_store:
+  backend: lancedb
+  path: "./data/lancedb"
+  table_name: "skill_embeddings"
+
+# ── SimpleMem 冷卻層記憶 ──
+# ⚠️ 未實作。全專案無任何 import 或 config 讀取，data/simplemem/ 不存在。
+# W15 已 deferred（plan_v4_12.md:737）。此區塊保留供未來整合，目前不生效。
+simplemem:
+  enabled: false
+  top_k: 5
+  max_tokens: 800
+  consolidation_interval: 10
+  store_path: "./data/simplemem"
+
+# ── LLM Tier A（A1, A2, executor, Φ）──
+llm:
+  base_url: "http://localhost:8080"
+  api_key_env: SIES_LLM_API_KEY
+  api_format: "anthropic"
+  model: "coder"
+  temperature: 0.1
+  max_tokens: 8192
+  max_retries: 3
+  timeout: 300
+
+# ── LLM Tier B（A3, Curriculum）──
+# 初期同 Tier A。W9 品質不足時改：
+#   base_url → https://api.anthropic.com
+#   model    → claude-haiku-4-5-20251001
+#   api_key_env 指向的環境變數 → 真實 key
+llm_tier_b:
+  base_url: "http://localhost:8080"
+  api_key_env: SIES_LLM_API_KEY
+  api_format: "anthropic"
+  model: "coder"
+  temperature: 0.1
+  max_tokens: 8192
+  max_retries: 3
+  timeout: 300
+
+# ── Web Search & Read（W14 新增；wrapper 在 ~/projects/web-search-server/ port 8081）──
+web_search:
+  server_url: "http://localhost:8081"     # FastAPI wrapper (主要呼叫點)
+  web_timeout: 30                          # /api/search & /api/fetch 單次 timeout（秒）
+  max_results: 5                           # 單次搜尋回傳上限（context window 緊張時降到 3）
+  read_max_chars: 4000                     # read_page 全文截斷長度（與 server 端對齊）
+  provider: searxng                        # wrapper 模式下未使用（保留給未來 tavily/brave fallback）
+  searxng_url: "http://localhost:8082"     # wrapper 模式下未使用（wrapper 內部已硬編此值）
+
+# ── Curriculum Agent（W14 啟用）──
+# ⚠️ 6 個鍵中 5 個死鍵，ability_profile_path 被 hardcode 覆蓋
+#    （實際路徑 data/ability_profile_live.json）
+curriculum:
+  enabled: false
+  success_rate_target: { min: 0.30, max: 0.70 }
+  tasks_per_batch: 5
+  trigger_interval: 10
+  ability_profile_path: "./curriculum/ability_profile.json"
+
+# ── Curriculum 自動閉環 loop（W15 啟用）──
+curriculum_loop:
+  enabled: true   # ⚠️ 死鍵。curriculum_loop.py:65-70 只讀其餘 5 個鍵，不讀 enabled。
+                  # loop 是否執行取決於有沒有人呼叫 CurriculumLoop。
+  idle_threshold_seconds: 300        # demo 防呆；W16 long-run 改近 0
+  poll_interval_seconds: 5
+  phi_every_n_tasks: 10
+  k_per_cluster: 1                   # 每 cluster 出題數（5 cluster → 每 batch 5×k 題）
+  max_consecutive_empty_generations: 3   # 連續出 0 題達此值 → 停 loop（防 busy-spin 空轉）
+
+# ── 系統 ──
+system:
+  project_root: "."
+  log_level: INFO
+  trace_dir: "./memory/episodic"
+  working_memory_dir: "./memory/working"
+  git_auto_commit: true

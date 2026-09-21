@@ -1,0 +1,626 @@
+{
+  "generated_at": "2026-09-14T07:55:09.148157+08:00",
+  "config": {
+    "top_k": 6,
+    "lambda1": 0.5,
+    "lambda2": 0.3,
+    "lambda3": 0.2,
+    "theta_dup": 0.75,
+    "sim_formula": "1 - d/2"
+  },
+  "retrieval": [
+    {
+      "query": "read a csv file and convert it to json, print the row count",
+      "cluster_hint": "C2",
+      "domain": [
+        "data",
+        "engineering"
+      ],
+      "subtasks": [
+        "Read the CSV file from an absolute path",
+        "Convert each row into a dictionary",
+        "Serialize the list to JSON and print the row count"
+      ],
+      "elapsed_seconds": 2.4,
+      "results": [
+        {
+          "name": "json-data-normalization-pipeline",
+          "activation_score": 0.3802,
+          "sim": 0.4969,
+          "utility": 0.3292,
+          "centrality": 0.1651,
+          "l2_distance": 1.0062
+        },
+        {
+          "name": "file-io",
+          "activation_score": 0.3437,
+          "sim": 0.43,
+          "utility": 0.423,
+          "centrality": 0.0092,
+          "l2_distance": 1.1399
+        },
+        {
+          "name": "absolute-path-data-pipeline",
+          "activation_score": 0.3251,
+          "sim": 0.3831,
+          "utility": 0.335,
+          "centrality": 0.1651,
+          "l2_distance": 1.2339
+        },
+        {
+          "name": "data-aggregation-and-reporting-pipeline",
+          "activation_score": 0.3189,
+          "sim": 0.3707,
+          "utility": 0.335,
+          "centrality": 0.1651,
+          "l2_distance": 1.2587
+        },
+        {
+          "name": "schema-validation-and-filtering-pipeline",
+          "activation_score": 0.3144,
+          "sim": 0.3616,
+          "utility": 0.3292,
+          "centrality": 0.1743,
+          "l2_distance": 1.2768
+        },
+        {
+          "name": "structured-data-format-conversion",
+          "activation_score": 0.2802,
+          "sim": 0.5244,
+          "utility": 0.06,
+          "centrality": 0.0,
+          "l2_distance": 0.9511
+        }
+      ]
+    },
+    {
+      "query": "validate every record has required fields, split valid and invalid",
+      "cluster_hint": "C2",
+      "domain": [
+        "data",
+        "engineering"
+      ],
+      "subtasks": [
+        "Load the parsed records from disk",
+        "Check each record against the required field schema",
+        "Write valid and invalid records to separate output files"
+      ],
+      "elapsed_seconds": 1.908,
+      "results": [
+        {
+          "name": "data-partitioning-and-validation-pipeline",
+          "activation_score": 0.482,
+          "sim": 0.6719,
+          "utility": 0.45,
+          "centrality": 0.055,
+          "l2_distance": 0.6562
+        },
+        {
+          "name": "schema-validation-and-filtering-pipeline",
+          "activation_score": 0.4492,
+          "sim": 0.6311,
+          "utility": 0.3292,
+          "centrality": 0.1743,
+          "l2_distance": 0.7378
+        },
+        {
+          "name": "json-data-normalization-pipeline",
+          "activation_score": 0.3788,
+          "sim": 0.4939,
+          "utility": 0.3292,
+          "centrality": 0.1651,
+          "l2_distance": 1.0121
+        },
+        {
+          "name": "data-validation-and-cleaning-pipeline",
+          "activation_score": 0.3774,
+          "sim": 0.5847,
+          "utility": 0.21,
+          "centrality": 0.1101,
+          "l2_distance": 0.8307
+        },
+        {
+          "name": "data-generation-to-transformation-pipeline",
+          "activation_score": 0.3508,
+          "sim": 0.4704,
+          "utility": 0.3852,
+          "centrality": 0.0,
+          "l2_distance": 1.0591
+        },
+        {
+          "name": "end-to-end-data-transformation-workflow",
+          "activation_score": 0.3187,
+          "sim": 0.4807,
+          "utility": 0.1632,
+          "centrality": 0.1468,
+          "l2_distance": 1.0385
+        }
+      ]
+    },
+    {
+      "query": "implement a recursive algorithm with memoization and test it",
+      "cluster_hint": "C1",
+      "domain": [
+        "software-engineering"
+      ],
+      "subtasks": [
+        "Implement the recursive function with a memoization cache",
+        "Write a test harness covering base cases and edge cases",
+        "Verify results against known expected values"
+      ],
+      "elapsed_seconds": 1.973,
+      "results": [
+        {
+          "name": "recursive-formula-implementation-with-memoization",
+          "activation_score": 0.4123,
+          "sim": 0.6811,
+          "utility": 0.2392,
+          "centrality": 0.0,
+          "l2_distance": 0.6378
+        },
+        {
+          "name": "algorithm-implementation-with-test-harness",
+          "activation_score": 0.4106,
+          "sim": 0.6023,
+          "utility": 0.3648,
+          "centrality": 0.0,
+          "l2_distance": 0.7955
+        },
+        {
+          "name": "algorithm-implementation-with-test-suite",
+          "activation_score": 0.3978,
+          "sim": 0.596,
+          "utility": 0.3327,
+          "centrality": 0.0,
+          "l2_distance": 0.808
+        },
+        {
+          "name": "algorithm-implementation-with-validation-suite",
+          "activation_score": 0.3811,
+          "sim": 0.5825,
+          "utility": 0.2994,
+          "centrality": 0.0,
+          "l2_distance": 0.8349
+        },
+        {
+          "name": "algorithm-implementation-with-automated-verification",
+          "activation_score": 0.3772,
+          "sim": 0.5748,
+          "utility": 0.2994,
+          "centrality": 0.0,
+          "l2_distance": 0.8505
+        },
+        {
+          "name": "recursive-problem-decomposition",
+          "activation_score": 0.3437,
+          "sim": 0.5583,
+          "utility": 0.2153,
+          "centrality": 0.0,
+          "l2_distance": 0.8834
+        }
+      ]
+    },
+    {
+      "query": "extract all email addresses from a text file using regex",
+      "cluster_hint": "C5",
+      "domain": [
+        "data",
+        "software-engineering"
+      ],
+      "subtasks": [
+        "Read the raw text file",
+        "Apply a regular expression to find every email address",
+        "Write the deduplicated matches to an output file"
+      ],
+      "elapsed_seconds": 1.95,
+      "results": [
+        {
+          "name": "html-to-structured-data-pipeline",
+          "activation_score": 0.3076,
+          "sim": 0.3501,
+          "utility": 0.405,
+          "centrality": 0.055,
+          "l2_distance": 1.2997
+        },
+        {
+          "name": "regex-based-pattern-extraction",
+          "activation_score": 0.2973,
+          "sim": 0.5946,
+          "utility": 0.0,
+          "centrality": 0.0,
+          "l2_distance": 0.8109
+        },
+        {
+          "name": "json-data-normalization-pipeline",
+          "activation_score": 0.2863,
+          "sim": 0.309,
+          "utility": 0.3292,
+          "centrality": 0.1651,
+          "l2_distance": 1.3819
+        },
+        {
+          "name": "regex-driven-data-normalization-pipeline",
+          "activation_score": 0.2457,
+          "sim": 0.4548,
+          "utility": 0.0,
+          "centrality": 0.0917,
+          "l2_distance": 1.0905
+        },
+        {
+          "name": "regex-based-process-filtering",
+          "activation_score": 0.2412,
+          "sim": 0.323,
+          "utility": 0.2658,
+          "centrality": 0.0,
+          "l2_distance": 1.354
+        },
+        {
+          "name": "regex-based-text-normalization",
+          "activation_score": 0.2104,
+          "sim": 0.3987,
+          "utility": 0.0,
+          "centrality": 0.055,
+          "l2_distance": 1.2026
+        }
+      ]
+    },
+    {
+      "query": "list running python processes and filter by name",
+      "cluster_hint": "C4",
+      "domain": [
+        "engineering",
+        "automation"
+      ],
+      "subtasks": [
+        "Query the operating system for the running process table",
+        "Filter the entries whose command matches the target name",
+        "Print the matching process ids in a fixed format"
+      ],
+      "elapsed_seconds": 2.219,
+      "results": [
+        {
+          "name": "code-execution",
+          "activation_score": 0.3927,
+          "sim": 0.3666,
+          "utility": 0.6918,
+          "centrality": 0.0092,
+          "l2_distance": 1.2668
+        },
+        {
+          "name": "regex-based-process-filtering",
+          "activation_score": 0.3563,
+          "sim": 0.5531,
+          "utility": 0.2658,
+          "centrality": 0.0,
+          "l2_distance": 0.8938
+        },
+        {
+          "name": "file-io",
+          "activation_score": 0.287,
+          "sim": 0.3164,
+          "utility": 0.423,
+          "centrality": 0.0092,
+          "l2_distance": 1.3671
+        },
+        {
+          "name": "end-to-end-script-integration",
+          "activation_score": 0.1841,
+          "sim": 0.33,
+          "utility": 0.0638,
+          "centrality": 0.0,
+          "l2_distance": 1.34
+        },
+        {
+          "name": "resource-efficient-file-processing",
+          "activation_score": 0.1765,
+          "sim": 0.3169,
+          "utility": 0.0603,
+          "centrality": 0.0,
+          "l2_distance": 1.3662
+        },
+        {
+          "name": "regex-based-pattern-extraction",
+          "activation_score": 0.1679,
+          "sim": 0.3359,
+          "utility": 0.0,
+          "centrality": 0.0,
+          "l2_distance": 1.3282
+        }
+      ]
+    },
+    {
+      "query": "merge two datasets on a common key and generate a summary report",
+      "cluster_hint": "C3",
+      "domain": [
+        "data",
+        "analysis"
+      ],
+      "subtasks": [
+        "Load both datasets from their absolute paths",
+        "Join the rows on the shared key column",
+        "Aggregate the merged rows and write a summary report"
+      ],
+      "elapsed_seconds": 1.996,
+      "results": [
+        {
+          "name": "relational-data-merging-pipeline",
+          "activation_score": 0.3792,
+          "sim": 0.5843,
+          "utility": 0.2169,
+          "centrality": 0.1101,
+          "l2_distance": 0.8315
+        },
+        {
+          "name": "data-aggregation-and-reporting-pipeline",
+          "activation_score": 0.367,
+          "sim": 0.4669,
+          "utility": 0.335,
+          "centrality": 0.1651,
+          "l2_distance": 1.0663
+        },
+        {
+          "name": "data-analysis",
+          "activation_score": 0.3132,
+          "sim": 0.4253,
+          "utility": 0.3229,
+          "centrality": 0.0183,
+          "l2_distance": 1.1494
+        },
+        {
+          "name": "cross-file-consistency-verification",
+          "activation_score": 0.2904,
+          "sim": 0.3803,
+          "utility": 0.3281,
+          "centrality": 0.0092,
+          "l2_distance": 1.2393
+        },
+        {
+          "name": "multi-format-data-integration-pipeline",
+          "activation_score": 0.2885,
+          "sim": 0.4863,
+          "utility": 0.084,
+          "centrality": 0.1009,
+          "l2_distance": 1.0274
+        },
+        {
+          "name": "structured-data-aggregation-pipeline",
+          "activation_score": 0.2698,
+          "sim": 0.4308,
+          "utility": 0.108,
+          "centrality": 0.1101,
+          "l2_distance": 1.1385
+        }
+      ]
+    },
+    {
+      "query": "implement n-queens with backtracking and verify the solution",
+      "cluster_hint": "C3",
+      "domain": [
+        "software-engineering"
+      ],
+      "subtasks": [
+        "Implement the backtracking search over board placements",
+        "Add constraint validation for rows, columns and diagonals",
+        "Verify each returned board is a legal solution"
+      ],
+      "elapsed_seconds": 2.193,
+      "results": [
+        {
+          "name": "backtracking-search-with-constraint-validation",
+          "activation_score": 0.3887,
+          "sim": 0.6338,
+          "utility": 0.2392,
+          "centrality": 0.0,
+          "l2_distance": 0.7323
+        },
+        {
+          "name": "algorithm-implementation-with-test-harness",
+          "activation_score": 0.3161,
+          "sim": 0.4134,
+          "utility": 0.3648,
+          "centrality": 0.0,
+          "l2_distance": 1.1733
+        },
+        {
+          "name": "algorithm-implementation-with-test-suite",
+          "activation_score": 0.3095,
+          "sim": 0.4195,
+          "utility": 0.3327,
+          "centrality": 0.0,
+          "l2_distance": 1.1611
+        },
+        {
+          "name": "algorithm-implementation-with-automated-verification",
+          "activation_score": 0.3048,
+          "sim": 0.43,
+          "utility": 0.2994,
+          "centrality": 0.0,
+          "l2_distance": 1.1401
+        },
+        {
+          "name": "algorithm-implementation-with-validation-suite",
+          "activation_score": 0.3022,
+          "sim": 0.4247,
+          "utility": 0.2994,
+          "centrality": 0.0,
+          "l2_distance": 1.1506
+        },
+        {
+          "name": "class-implementation-with-unit-testing",
+          "activation_score": 0.3014,
+          "sim": 0.4238,
+          "utility": 0.2984,
+          "centrality": 0.0,
+          "l2_distance": 1.1523
+        }
+      ]
+    },
+    {
+      "query": "normalize inconsistent date formats across a data file",
+      "cluster_hint": "C5",
+      "domain": [
+        "data",
+        "analysis"
+      ],
+      "subtasks": [
+        "Read the data file containing mixed date representations",
+        "Detect and parse each of the inconsistent formats",
+        "Rewrite every value into one canonical format"
+      ],
+      "elapsed_seconds": 2.054,
+      "results": [
+        {
+          "name": "json-data-normalization-pipeline",
+          "activation_score": 0.3538,
+          "sim": 0.4439,
+          "utility": 0.3292,
+          "centrality": 0.1651,
+          "l2_distance": 1.1121
+        },
+        {
+          "name": "file-io",
+          "activation_score": 0.3142,
+          "sim": 0.3709,
+          "utility": 0.423,
+          "centrality": 0.0092,
+          "l2_distance": 1.2582
+        },
+        {
+          "name": "data-analysis",
+          "activation_score": 0.289,
+          "sim": 0.3769,
+          "utility": 0.3229,
+          "centrality": 0.0183,
+          "l2_distance": 1.2462
+        },
+        {
+          "name": "data-validation-and-cleaning-pipeline",
+          "activation_score": 0.2699,
+          "sim": 0.3697,
+          "utility": 0.21,
+          "centrality": 0.1101,
+          "l2_distance": 1.2605
+        },
+        {
+          "name": "end-to-end-data-transformation-workflow",
+          "activation_score": 0.263,
+          "sim": 0.3693,
+          "utility": 0.1632,
+          "centrality": 0.1468,
+          "l2_distance": 1.2615
+        },
+        {
+          "name": "regex-driven-data-normalization-pipeline",
+          "activation_score": 0.2622,
+          "sim": 0.4877,
+          "utility": 0.0,
+          "centrality": 0.0917,
+          "l2_distance": 1.0245
+        }
+      ]
+    }
+  ],
+  "dedup": [
+    {
+      "case_id": "real_rejected",
+      "label": "真實案例：長跑最後一筆被擋下的候選",
+      "query": "Read a JSON dataset, apply string cleaning transformations (like case normalization and whitespace stripping) to specific fields, and persist the result to a new file.",
+      "candidate_name": "json-field-normalization-pipeline",
+      "embed_text": "json-field-normalization-pipeline Read a JSON dataset, apply string cleaning transformations (like case normalization and whitespace stripping) to specific fields, and persist the result to a new file. Define absolute paths for input and output to ensure environment consistency Load the structured data using a standard parser Iterate through the collection and apply string normalization (lowercase, ",
+      "closest": "json-data-normalization-pipeline",
+      "sim": 0.9169,
+      "verdict": "rejected",
+      "threshold": 0.75,
+      "above_threshold": true,
+      "reason": "too similar to existing skill 'json-data-normalization-pipeline' (sim=0.9169 > θdup=0.75)",
+      "note": "原文取自 skills/candidates/json-field-normalization-pipeline/SKILL.md"
+    },
+    {
+      "case_id": "boundary_validate",
+      "label": "邊界案例：既有技能加一個額外步驟",
+      "query": "Validate records against a required-field schema, split them into valid and invalid outputs, and additionally append a per-record audit trail entry.",
+      "candidate_name": "schema-validation-with-audit-trail",
+      "embed_text": "schema-validation-with-audit-trail Validate records against a required-field schema, split them into valid and invalid outputs, and additionally append a per-record audit trail entry. Load the records and the required field list Partition the records by whether they satisfy the schema Write both partitions plus an audit log describing each rejection",
+      "closest": "data-partitioning-and-validation-pipeline",
+      "sim": 0.6529,
+      "verdict": "accepted",
+      "threshold": 0.75,
+      "above_threshold": false,
+      "reason": "",
+      "note": "在既有 schema 驗證技能上多一個 audit trail 步驟"
+    },
+    {
+      "case_id": "unrelated_cnn",
+      "label": "完全不相關的領域",
+      "query": "Train a convolutional neural network on an image dataset, tune the learning rate schedule, and report top-1 accuracy per epoch.",
+      "candidate_name": "convolutional-network-training",
+      "embed_text": "convolutional-network-training Train a convolutional neural network on an image dataset, tune the learning rate schedule, and report top-1 accuracy per epoch. Assemble the labelled image dataset and split it into train and validation folds Define the convolutional architecture and the optimiser Train for a fixed number of epochs and log validation accuracy",
+      "closest": "algorithm-implementation-with-validation-suite",
+      "sim": 0.3576,
+      "verdict": "accepted",
+      "threshold": 0.75,
+      "above_threshold": false,
+      "reason": "",
+      "note": "與既有技能庫（資料處理 / 演算法實作）沒有語意重疊"
+    },
+    {
+      "case_id": "boundary_csv_json",
+      "label": "邊界案例：換句話說的既有技能",
+      "query": "Take a tabular data file, turn every row into a document-style record, and store the resulting collection as a JSON file on disk.",
+      "candidate_name": "tabular-to-document-converter",
+      "embed_text": "tabular-to-document-converter Take a tabular data file, turn every row into a document-style record, and store the resulting collection as a JSON file on disk. Resolve the absolute input and output paths Parse the tabular file row by row Emit the rows as a JSON document collection and write it out",
+      "closest": "structured-data-format-conversion",
+      "sim": 0.523,
+      "verdict": "accepted",
+      "threshold": 0.75,
+      "above_threshold": false,
+      "reason": "",
+      "note": "刻意用不同措辭描述既有的 csv→json 管線，測試語意去重而非字面比對"
+    }
+  ],
+  "dedup_pool_measured": [
+    {
+      "case_id": "real_rejected",
+      "closest": "json-data-normalization-pipeline",
+      "sim": 0.9169,
+      "verdict": "rejected"
+    },
+    {
+      "case_id": "unrelated_cnn",
+      "closest": "algorithm-implementation-with-validation-suite",
+      "sim": 0.3576,
+      "verdict": "accepted"
+    },
+    {
+      "case_id": "medium_shell",
+      "closest": "shell-to-code-data-refinement",
+      "sim": 0.3777,
+      "verdict": "accepted"
+    },
+    {
+      "case_id": "medium_plot",
+      "closest": "data-aggregation-and-frequency-counting",
+      "sim": 0.4721,
+      "verdict": "accepted"
+    },
+    {
+      "case_id": "boundary_csv_json",
+      "closest": "structured-data-format-conversion",
+      "sim": 0.523,
+      "verdict": "accepted"
+    },
+    {
+      "case_id": "boundary_validate",
+      "closest": "data-partitioning-and-validation-pipeline",
+      "sim": 0.6529,
+      "verdict": "accepted"
+    }
+  ],
+  "timings_seconds": {
+    "cold_start": 7.472,
+    "planner_ctor": 0.16,
+    "retrieval_total": 16.694,
+    "dedup_total": 17.18,
+    "total": 41.548
+  }
+}

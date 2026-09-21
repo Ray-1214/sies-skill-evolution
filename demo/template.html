@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIES · Skill-Level Evolution Without Parameter Updates</title>
+<style>
+/* ==========================================================================
+   SIES demo — 學術風格：中性配色，無漸層 / 無陰影 / 無動畫
+   ========================================================================== */
+:root{
+  --bg:#fbfbfa; --panel:#ffffff; --panel-alt:#f4f3f0;
+  --bd:#d8d6d1; --bd-strong:#b5b2ab;
+  --fg:#1c1c1b; --fg-dim:#5f5e59; --fg-faint:#8a8881;
+  --accent:#2d5d7c;
+  --tier-active:#2d5d7c; --tier-cold:#7d8570; --tier-archive:#b2aea6;
+  --e-bootstrap:#b4622e; --e-curriculum:#9aa0ab; --e-contraction:#2f7a5e; --e-learned:#a02c5a;
+  --ok:#2f7a5e; --warn:#b07d20; --bad:#a8342c;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC",
+         "Microsoft JhengHei",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);
+     font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+code,.mono,td.num,th.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+h1,h2,h3{margin:0;font-weight:600}
+button{font-family:inherit;font-size:12px;color:var(--fg);background:var(--panel);
+       border:1px solid var(--bd-strong);padding:4px 10px;cursor:pointer}
+button:hover{background:var(--panel-alt)}
+button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+a{color:var(--accent)}
+
+/* ---------- 版面 ---------- */
+.app{display:flex;flex-direction:column;height:100vh}
+header{border-bottom:1px solid var(--bd);background:var(--panel);padding:8px 14px;flex:0 0 auto}
+header .title{font-size:15px;font-weight:600;letter-spacing:.2px}
+header .title .sub{font-weight:400;color:var(--fg-dim);font-size:12px;margin-left:8px}
+header .statline{margin-top:3px;font-size:11.5px;color:var(--fg-dim);font-family:var(--mono)}
+header .statline b{color:var(--fg);font-weight:600}
+header .statline .sep{color:var(--bd-strong);margin:0 7px}
+.body{display:flex;flex:1 1 auto;min-height:0}
+nav{flex:0 0 186px;border-right:1px solid var(--bd);background:var(--panel-alt);
+    padding:8px 0;overflow-y:auto}
+nav button{display:block;width:100%;text-align:left;border:0;background:none;
+           padding:7px 14px;font-size:13px;border-left:3px solid transparent}
+nav button:hover{background:#e9e7e2}
+nav button.on{background:var(--panel);border-left-color:var(--accent);font-weight:600;color:var(--accent)}
+nav .navnum{color:var(--fg-faint);font-family:var(--mono);margin-right:7px;font-size:11px}
+main{flex:1 1 auto;min-width:0;overflow:hidden;display:flex;flex-direction:column}
+.view{display:none;flex:1 1 auto;min-height:0;overflow:hidden}
+.view.on{display:flex;flex-direction:column}
+.vhead{flex:0 0 auto;padding:9px 14px;border-bottom:1px solid var(--bd);background:var(--panel)}
+.vhead h2{font-size:14px}
+.vhead .desc{font-size:11.5px;color:var(--fg-dim);margin-top:2px}
+.vbody{flex:1 1 auto;min-height:0;overflow:auto;padding:12px 14px}
+.snapshot{display:inline-block;font-size:11px;color:var(--warn);border:1px solid var(--warn);
+          padding:1px 6px;margin-left:8px;vertical-align:1px}
+
+/* ---------- 表格 ---------- */
+table{border-collapse:collapse;width:100%;font-size:12px}
+th{text-align:left;font-weight:600;color:var(--fg-dim);border-bottom:1px solid var(--bd-strong);
+   padding:5px 8px;white-space:nowrap;background:var(--panel-alt)}
+td{border-bottom:1px solid var(--bd);padding:4px 8px;vertical-align:top}
+tr:hover td{background:var(--panel-alt)}
+.skillname{font-family:var(--mono);font-size:11.5px}
+
+/* ---------- 1. 技能圖 ---------- */
+#graphWrap{display:flex;flex:1 1 auto;min-height:0}
+#cyPane{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
+#cyBar{flex:0 0 auto;padding:6px 12px;border-bottom:1px solid var(--bd);background:var(--panel);
+       display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#cy{flex:1 1 auto;min-height:0;background:var(--panel)}
+.legend{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
+.lg{display:flex;align-items:center;gap:5px;border:1px solid var(--bd);padding:2px 7px;
+    cursor:pointer;font-size:11.5px;font-family:var(--mono);background:var(--panel)}
+.lg.off{opacity:.36;text-decoration:line-through}
+.lg .sw{width:16px;height:3px;display:inline-block}
+.lg .swn{width:11px;height:11px;display:inline-block;border:1px solid rgba(0,0,0,.25)}
+.lg .swd{width:11px;height:11px;display:inline-block;border:1px solid rgba(0,0,0,.25);
+         transform:rotate(45deg)}
+.ctl{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--fg-dim)}
+#sidePane{flex:0 0 372px;border-left:1px solid var(--bd);background:var(--panel);
+          display:flex;flex-direction:column;min-height:0}
+#sideHead{flex:0 0 auto;padding:9px 12px;border-bottom:1px solid var(--bd)}
+#sideHead .nm{font-family:var(--mono);font-size:12.5px;font-weight:600;word-break:break-all}
+#sideMeta{font-size:11px;color:var(--fg-dim);margin-top:4px;font-family:var(--mono)}
+#sideBody{flex:1 1 auto;overflow:auto;padding:10px 12px}
+#sideBody pre{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);
+              font-size:11px;line-height:1.45;color:var(--fg)}
+.badge{display:inline-block;font-size:10.5px;font-family:var(--mono);padding:0 5px;
+       border:1px solid var(--bd-strong);margin-right:4px}
+
+/* ---------- 2/3 ---------- */
+.split{display:flex;gap:14px;align-items:flex-start}
+.qlist{flex:0 0 316px;display:flex;flex-direction:column;gap:4px}
+.qbtn{text-align:left;padding:6px 9px;font-size:11.5px;line-height:1.35;border:1px solid var(--bd)}
+.qbtn .qi{font-family:var(--mono);color:var(--fg-faint);margin-right:6px}
+.qbtn .qc{font-family:var(--mono);font-size:10px;color:var(--fg-faint);float:right}
+.qbtn.on{border-color:var(--accent);background:var(--panel);font-weight:600;color:var(--accent)}
+.qres{flex:1 1 auto;min-width:0}
+.formula{font-family:var(--mono);font-size:12px;background:var(--panel-alt);
+         border:1px solid var(--bd);padding:7px 10px;margin-bottom:9px}
+.formula .eq{color:var(--fg-faint);margin-left:10px}
+.bar{display:flex;height:13px;width:190px;border:1px solid var(--bd)}
+.bar i{display:block;height:100%}
+.bs1{background:var(--accent)} .bs2{background:#7fa3ba} .bs3{background:#c3d3dd}
+.barkey{display:flex;gap:12px;font-size:11px;color:var(--fg-dim);margin:6px 0 9px}
+.barkey i{width:10px;height:10px;display:inline-block;margin-right:4px;vertical-align:-1px}
+
+/* ---------- 3. 去重 ---------- */
+.dcase{border:1px solid var(--bd);background:var(--panel);padding:11px 13px;margin-bottom:11px}
+.dcase h3{font-size:12.5px;margin-bottom:5px}
+.dcase .lbl{font-size:11px;color:var(--fg-dim);font-weight:400;margin-left:7px}
+.dq{font-size:11.5px;color:var(--fg-dim);margin:5px 0 9px;line-height:1.45}
+.axis{position:relative;height:44px;margin:14px 0 4px}
+.axis .track{position:absolute;top:15px;left:0;right:0;height:5px;background:var(--panel-alt);
+             border:1px solid var(--bd)}
+.axis .zone{position:absolute;top:15px;height:5px;background:#f0dcd8}
+.axis .thr{position:absolute;top:6px;width:2px;height:23px;background:var(--bad)}
+.axis .thrlab{position:absolute;top:30px;font-size:10px;font-family:var(--mono);color:var(--bad);
+              transform:translateX(-50%);white-space:nowrap}
+.axis .mk{position:absolute;top:9px;width:9px;height:17px;transform:translateX(-50%)}
+.axis .mklab{position:absolute;top:-3px;font-size:11px;font-family:var(--mono);font-weight:600;
+             transform:translateX(-50%);white-space:nowrap}
+.axis .tick{position:absolute;top:22px;font-size:9.5px;color:var(--fg-faint);font-family:var(--mono);
+            transform:translateX(-50%)}
+.verdict{display:inline-block;font-size:11px;font-family:var(--mono);padding:1px 8px;border:1px solid}
+.v-rej{color:var(--bad);border-color:var(--bad);background:#fbf1f0}
+.v-acc{color:var(--ok);border-color:var(--ok);background:#eff6f2}
+
+/* ---------- 4. 回放 ---------- */
+.rbar{display:flex;align-items:center;gap:8px;margin-bottom:11px;flex-wrap:wrap}
+.rbar input{width:54px;font-family:var(--mono);font-size:12px;padding:3px 5px;
+            border:1px solid var(--bd-strong);text-align:right}
+.note{background:var(--panel-alt);border:1px solid var(--bd);border-left:3px solid var(--warn);
+      padding:7px 10px;font-size:11.5px;line-height:1.5;margin-bottom:11px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{border:1px solid var(--bd);background:var(--panel);padding:10px 12px}
+.card h3{font-size:11.5px;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.4px;
+         margin-bottom:7px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:11.5px}
+.kv dt{color:var(--fg-dim)} .kv dd{margin:0;font-family:var(--mono)}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:0 6px;border:1px solid}
+.p-ok{color:var(--ok);border-color:var(--ok)} .p-bad{color:var(--bad);border-color:var(--bad)}
+.p-na{color:var(--fg-faint);border-color:var(--bd-strong)}
+ol.sk{margin:0;padding-left:19px;font-family:var(--mono);font-size:11px;line-height:1.65}
+
+/* ---------- 5. 成長曲線 ---------- */
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.chart{border:1px solid var(--bd);background:var(--panel);padding:9px 11px}
+.chart .ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.chart .ch h3{font-size:12px}
+
+/* ---------- 7. 誠實牆 ---------- */
+.hw td.st{text-align:center;font-size:14px;width:40px}
+.hw td.claim{font-weight:600}
+.hw tr.s-no td{background:#fdf6f5}
+.hw tr.s-no:hover td{background:#f9ebe9}
+.hwnote{margin-top:14px;max-width:860px;font-size:12.5px;line-height:1.8;color:var(--fg-dim)}
+.hwnote p{margin:0 0 10px}
+.hwnote p:last-child{margin-bottom:0}
+.quote{border:1px solid var(--bd);border-left:3px solid var(--accent);background:var(--panel);
+       padding:11px 14px;margin-top:14px;font-size:12.5px;line-height:1.75;max-width:860px}
+.foot{margin-top:9px;font-size:11px;color:var(--fg-faint)}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="title">SIES <span class="sub">· Skill-Level Evolution Without Parameter Updates</span></div>
+  <div class="statline" id="stat1"></div>
+  <div class="statline" id="stat2"></div>
+</header>
+
+<div class="body">
+  <nav id="nav"></nav>
+  <main>
+
+    <!-- ============ 1. 技能圖 ============ -->
+    <section class="view on" id="v-graph">
+      <div id="graphWrap">
+        <div id="cyPane">
+          <div id="cyBar">
+            <div class="legend" id="legNode"></div>
+            <div class="legend" id="legEdge"></div>
+            <label class="ctl"><input type="checkbox" id="showIso"> <span id="isoLab"></span></label>
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <button id="btnRelayout">重新佈局</button>
+              <button id="btnFit">重置視野</button>
+              <button id="btnPngGraph">匯出 PNG (3x)</button>
+            </div>
+          </div>
+          <div id="cy"></div>
+        </div>
+        <aside id="sidePane">
+          <div id="sideHead">
+            <div class="nm" id="sideName">（點選節點查看 SKILL.md）</div>
+            <div id="sideMeta"></div>
+          </div>
+          <div id="sideBody"><pre id="sideMd"></pre></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ 2. 語意檢索 ============ -->
+    <section class="view" id="v-retr">
+      <div class="vhead">
+        <h2>語意檢索 — A2 Activation Score<span class="snapshot">預先計算的結果快照，非即時查詢</span></h2>
+        <div class="desc" id="retrDesc"></div>
+      </div>
+      <div class="vbody">
+        <div class="split">
+          <div class="qlist" id="qlist"></div>
+          <div class="qres" id="qres"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 3. 去重閘 ============ -->
+    <section class="view" id="v-dedup">
+      <div class="vhead">
+        <h2>Φ-ii 去重閘<span class="snapshot">預先計算的結果快照，非即時查詢</span></h2>
+        <div class="desc" id="dedupDesc"></div>
+      </div>
+      <div class="vbody" id="dedupBody"></div>
+    </section>
+
+    <!-- ============ 4. 長跑回放 ============ -->
+    <section class="view" id="v-replay">
+      <div class="vhead">
+        <h2>長跑回放 — <span class="mono" id="runId"></span></h2>
+        <div class="desc" id="replayHead"></div>
+      </div>
+      <div class="vbody">
+        <div class="note" id="replayNote"></div>
+        <div class="rbar">
+          <button id="rPrev">← 上一題</button>
+          <button id="rNext">下一題 →</button>
+          <span style="color:var(--fg-dim)">跳至</span>
+          <input type="number" id="rJump" min="1" max="50" value="1">
+          <span style="color:var(--fg-dim)" id="rOf"></span>
+          <span style="margin-left:auto" id="rNav"></span>
+        </div>
+        <div id="replayBody"></div>
+      </div>
+    </section>
+
+    <!-- ============ 5. 成長曲線 ============ -->
+    <section class="view" id="v-growth">
+      <div class="vhead">
+        <h2>成長曲線 — 5 個 checkpoint（每 10 題）</h2>
+        <div class="desc" id="growthDesc"></div>
+      </div>
+      <div class="vbody"><div class="charts" id="charts"></div></div>
+    </section>
+
+    <!-- ============ 6. 演化日誌 ============ -->
+    <section class="view" id="v-eslog">
+      <div class="vhead">
+        <h2>演化日誌 — Φ 的 19 次呼叫</h2>
+        <div class="desc" id="eslogDesc"></div>
+      </div>
+      <div class="vbody" id="eslogBody"></div>
+    </section>
+
+    <!-- ============ 7. 誠實牆 ============ -->
+    <section class="view" id="v-honest">
+      <div class="vhead" style="display:flex;align-items:center">
+        <div>
+          <h2>誠實牆 — 宣稱 vs 證據</h2>
+          <div class="desc">每一條都指向可重跑的資料來源。做不到的直接標 ❌，不做模糊化。</div>
+        </div>
+        <button id="btnPngHonest" style="margin-left:auto">匯出 PNG</button>
+      </div>
+      <div class="vbody" id="honestBody"></div>
+    </section>
+
+  </main>
+</div>
+</div>
+
+<script id="sies-data" type="application/json">__SIES_DATA_JSON__</script>
+<script id="sies-queries" type="application/json">__SIES_QUERIES_JSON__</script>
+<script id="sies-tasks" type="application/json">__SIES_TASKS_JSON__</script>
+<script src="./vendor/cytoscape.min.js"></script>
+<script>
+"use strict";
+/* =========================================================================
+   SIES demo — vanilla JS，除 cytoscape 外無任何函式庫
+   零 fetch / 零 localStorage / 零外部請求
+   ========================================================================= */
+const D = JSON.parse(document.getElementById('sies-data').textContent);
+const Q = JSON.parse(document.getElementById('sies-queries').textContent);
+const T = JSON.parse(document.getElementById('sies-tasks').textContent);
+
+const $ = s => document.querySelector(s);
+const el = (t, a, kids) => {
+  const n = document.createElement(t);
+  if (a) for (const k in a) {
+    if (k === 'class') n.className = a[k];
+    else if (k === 'html') n.innerHTML = a[k];
+    else if (k === 'text') n.textContent = a[k];
+    else n.setAttribute(k, a[k]);
+  }
+  (kids || []).forEach(c => n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c));
+  return n;
+};
+const fx = (v, n) => (v === null || v === undefined || isNaN(v)) ? '—' : Number(v).toFixed(n);
+const pct = v => (v * 100).toFixed(1) + '%';
+
+const EDGE_CLASSES = [
+  { id:'bootstrap',   label:'bootstrap',   color:'#b4622e', desc:'手寫種子' },
+  { id:'curriculum',  label:'curriculum',  color:'#9aa0ab', desc:'課程路徑機械落地' },
+  { id:'contraction', label:'contraction', color:'#2f7a5e', desc:'Φ-iii 收縮' },
+  { id:'learned',     label:'learned',     color:'#a02c5a', desc:'統計/語意學到的' }
+];
+const TIERS = [
+  { id:'active',  color:'#2d5d7c' },
+  { id:'cold',    color:'#7d8570' },
+  { id:'archive', color:'#b2aea6' }
+];
+
+/* ---------- 頂端狀態列 ---------- */
+(function header(){
+  const s = D.system, c = D.counts;
+  $('#stat1').innerHTML =
+    `LLM: <b>${s.llm.model}</b> <span class="sep">|</span> ` +
+    `Embed: <b>${s.embedding.model}</b> (${s.embedding.device}, dim=${s.embedding.dim}) ` +
+    `<span class="sep">|</span> Vector: <b>LanceDB ${s.vector.rows} rows</b> ` +
+    `<span class="sep">|</span> Sandbox: <b>docker ${s.sandbox.container}</b>`;
+  $('#stat2').innerHTML =
+    `硬體: <b>${s.hardware}</b> <span class="sep">|</span> <b>${s.note}</b> ` +
+    `<span class="sep">|</span> 圖: <b>${c.nodes_total}</b> 節點 / <b>${c.edges_total}</b> 邊 ` +
+    `<span class="sep">|</span> 資料快照: <b>${D.generated_at.slice(0,19).replace('T',' ')}</b>`;
+})();
+
+/* ---------- 左側導覽 ---------- */
+const VIEWS = [
+  ['graph',  '技能圖'],
+  ['retr',   '語意檢索'],
+  ['dedup',  '去重閘'],
+  ['replay', '長跑回放'],
+  ['growth', '成長曲線'],
+  ['eslog',  '演化日誌'],
+  ['honest', '誠實牆 ★']
+];
+let CUR = 'graph';
+(function nav(){
+  const n = $('#nav');
+  VIEWS.forEach(([id, label], i) => {
+    const b = el('button', { class: id === CUR ? 'on' : '' });
+    b.appendChild(el('span', { class:'navnum', text:String(i+1) }));
+    b.appendChild(document.createTextNode(label));
+    b.onclick = () => show(id);
+    b.dataset.v = id;
+    n.appendChild(b);
+  });
+})();
+function show(id){
+  CUR = id;
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === id));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'v' + '-' + id));
+  if (id === 'graph' && cy) { cy.resize(); cy.fit(undefined, 28); }
+}
+
+/* =========================================================================
+   1. 技能圖
+   ========================================================================= */
+let cy = null;
+const edgeOn = { bootstrap:true, curriculum:true, contraction:true, learned:true };
+let showIso = false;
+
+(function buildGraph(){
+  const nodes = D.graph.nodes, edges = D.graph.edges;
+  const us = nodes.map(n => n.utility || 0);
+  const uMin = Math.min(...us), uMax = Math.max(...us);
+  const size = u => { // sqrt 正規化，最小值也要看得見
+    const t = uMax > uMin ? Math.sqrt(((u || 0) - uMin) / (uMax - uMin)) : 0.5;
+    return 15 + t * 31;
+  };
+  const els = [];
+  nodes.forEach(n => els.push({ data:{
+    id:n.name, label:n.name, tier:n.tier, util:n.utility, deg:n.degree,
+    shape:n.is_macro ? 'diamond' : 'ellipse', sz:size(n.utility),
+    iso:n.degree === 0 ? 1 : 0
+  }}));
+  edges.forEach((e, i) => els.push({ data:{
+    id:'e'+i, source:e.source, target:e.target,
+    pc:e.provenance_class, rel:e.relation, w:e.weight
+  }}));
+
+  cy = cytoscape({
+    container: $('#cy'),
+    elements: els,
+    wheelSensitivity: 0.22,
+    style: [
+      { selector:'node', style:{
+          'background-color': n => TIERS.find(t => t.id === n.data('tier')).color,
+          'width':'data(sz)', 'height':'data(sz)', 'shape':'data(shape)',
+          'border-width':1, 'border-color':'#ffffff',
+          'label':'', 'z-index':10 } },
+      { selector:'node.dim', style:{ 'opacity':0.12 } },
+      { selector:'node.sel', style:{
+          'border-width':3, 'border-color':'#1c1c1b', 'z-index':30 } },
+      { selector:'node.nb',  style:{ 'border-width':2, 'border-color':'#4a4a48', 'z-index':20 } },
+      { selector:'node.lbl', style:{
+          'label':'data(label)', 'font-size':9, 'font-family':'monospace',
+          'text-wrap':'wrap','text-max-width':150,
+          'color':'#1c1c1b','text-background-color':'#ffffff',
+          'text-background-opacity':0.88,'text-background-padding':2,
+          'text-valign':'bottom','text-margin-y':3,'z-index':40 } },
+      { selector:'edge', style:{
+          'width': e => 0.7 + (e.data('w') || 0.4) * 1.9,
+          'line-color': e => EDGE_CLASSES.find(c => c.id === e.data('pc')).color,
+          'target-arrow-color': e => EDGE_CLASSES.find(c => c.id === e.data('pc')).color,
+          'target-arrow-shape':'triangle', 'arrow-scale':0.62,
+          'curve-style':'bezier', 'opacity':0.62 } },
+      { selector:'edge.dim', style:{ 'opacity':0.05 } },
+      { selector:'edge.hi',  style:{ 'opacity':1, 'width':2.6, 'z-index':25 } }
+    ],
+    layout:{ name:'cose', animate:false, nodeRepulsion:9000, idealEdgeLength:70,
+             nodeOverlap:14, gravity:0.55, numIter:900, padding:28,
+             randomize:false, componentSpacing:80 }
+  });
+
+  cy.on('tap', 'node', evt => selectNode(evt.target.id()));
+  cy.on('tap', e => { if (e.target === cy) clearSel(); });
+  applyFilters();
+  cy.fit(undefined, 28);
+})();
+
+function applyFilters(){
+  cy.batch(() => {
+    cy.edges().forEach(e => {
+      const vis = edgeOn[e.data('pc')];
+      e.style('display', vis ? 'element' : 'none');
+    });
+    cy.nodes().forEach(n => {
+      const isIso = n.data('iso') === 1;
+      n.style('display', (isIso && !showIso) ? 'none' : 'element');
+    });
+  });
+}
+function clearSel(){
+  cy.elements().removeClass('dim sel nb lbl hi');
+  $('#sideName').textContent = '（點選節點查看 SKILL.md）';
+  $('#sideMeta').textContent = '';
+  $('#sideMd').textContent = '';
+}
+function selectNode(id){
+  const n = cy.$id(id);
+  const nb = n.closedNeighborhood();
+  cy.batch(() => {
+    cy.elements().addClass('dim').removeClass('sel nb lbl hi');
+    nb.removeClass('dim');
+    nb.nodes().addClass('lbl');
+    nb.edges().addClass('hi');
+    n.removeClass('nb').addClass('sel');
+    nb.nodes().not(n).addClass('nb');
+  });
+  const d = D.graph.nodes.find(x => x.name === id);
+  $('#sideName').textContent = id;
+  const bits = [
+    `<span class="badge">${d.tier}</span>`,
+    `<span class="badge">U=${fx(d.utility,4)}</span>`,
+    `<span class="badge">freq=${d.frequency}</span>`,
+    `<span class="badge">degree=${d.degree}</span>`,
+    d.is_macro ? '<span class="badge">MACRO</span>' : ''
+  ];
+  if (d.parent_skills) bits.push(`<span class="badge">parents: ${d.parent_skills.join(', ')}</span>`);
+  $('#sideMeta').innerHTML = bits.join('') + `<div style="margin-top:4px">${d.path}</div>`;
+  $('#sideMd').textContent = D.skills[id] || '（此節點在 data.json 中沒有 SKILL.md 全文）';
+  $('#sideBody').scrollTop = 0;
+}
+
+(function legend(){
+  const ln = $('#legNode');
+  const tierCount = D.counts.tier;
+  TIERS.forEach(t => {
+    ln.appendChild(el('span', { class:'lg', style:'cursor:default',
+      html:`<i class="swn" style="background:${t.color}"></i>${t.id} ${tierCount[t.id]}` }));
+  });
+  ln.appendChild(el('span', { class:'lg', style:'cursor:default',
+    html:`<i class="swd" style="background:#2d5d7c"></i>macro ${D.counts.macros}` }));
+
+  const le = $('#legEdge');
+  EDGE_CLASSES.forEach(c => {
+    const n = D.counts.edges_by_provenance[c.id];
+    const b = el('span', { class:'lg', title:c.desc,
+      html:`<i class="sw" style="background:${c.color}"></i>${c.label} <b>${n}</b>` });
+    b.onclick = () => { edgeOn[c.id] = !edgeOn[c.id]; b.classList.toggle('off', !edgeOn[c.id]); applyFilters(); };
+    le.appendChild(b);
+  });
+
+  $('#isoLab').textContent =
+    `顯示 ${D.counts.isolated_nodes} 個孤立節點 (${pct(D.counts.isolated_ratio)})`;
+  $('#showIso').onchange = e => { showIso = e.target.checked; applyFilters(); };
+  $('#btnRelayout').onclick = () => cy.layout({ name:'cose', animate:false, nodeRepulsion:9000,
+      idealEdgeLength:70, nodeOverlap:14, gravity:0.55, numIter:900, padding:28,
+      randomize:true, componentSpacing:80 }).run();
+  $('#btnFit').onclick = () => cy.fit(undefined, 28);
+  $('#btnPngGraph').onclick = () => exportGraphPNG(3);
+})();
+
+/* ---------- 技能圖 PNG：把圖例合成進圖片 ----------
+   cy.png() 只吐 cytoscape 那塊畫布，圖例住在 #cyBar 的 HTML 裡、不在畫布內。
+   最關鍵的 learned 0 因此會從匯出的圖消失，讀者只看到「216 條邊」，
+   剛好會得到誠實牆要否認的那個印象。所以這裡另開一張 canvas，
+   依序畫標題、圖例、圖，再一起輸出。
+
+   圖例的顏色、形狀、文字一律從畫面上的 DOM 讀（getComputedStyle），
+   不在這裡重填任何色碼——畫面上的圖例改了，匯出就跟著改。 */
+function readLegend(sel){
+  return [...$(sel).querySelectorAll('.lg')].map(lg => {
+    const sw = lg.querySelector('i'), cs = getComputedStyle(sw);
+    return {
+      fill:  cs.backgroundColor,
+      stroke:cs.borderTopStyle === 'none' ? null : cs.borderTopColor,
+      shape: sw.classList.contains('swd') ? 'diamond'
+           : sw.classList.contains('swn') ? 'square' : 'line',
+      text:  lg.textContent.trim().replace(/\s+/g, ' '),
+      off:   lg.classList.contains('off')
+    };
+  });
+}
+
+function graphHeaderCanvas(imgW, imgH, scale){
+  const css = getComputedStyle(document.documentElement);
+  const V = k => css.getPropertyValue(k).trim();
+  const SANS = V('--sans'), FG = V('--fg'), DIM = V('--fg-dim'), BD = V('--bd-strong');
+  const c = D.counts;
+
+  const rows = [readLegend('#legNode'), readLegend('#legEdge')];
+  const PAD = 20, ITEM_GAP = 20, SW_GAP = 6;
+  const SQ = 11, DIAG = SQ * Math.SQRT2 / 2, LINE_W = 16, LINE_H = 3;
+  const swW = it => it.shape === 'line' ? LINE_W : it.shape === 'diamond' ? DIAG*2 : SQ;
+
+  // 先量一次，決定畫布要多寬
+  const probe = el('canvas').getContext('2d');
+  probe.font = `12px ${SANS}`;
+  rows.forEach(r => r.forEach(it => it.w = swW(it) + SW_GAP + probe.measureText(it.text).width));
+  const rowW = rows.map(r => r.reduce((a, it) => a + it.w, 0) + (r.length - 1) * ITEM_GAP);
+
+  const title = `SIES 技能圖譜 — ${c.nodes_total} 節點 / ${c.edges_total} 邊` +
+    ($('#showIso').checked ? `（含 ${c.isolated_nodes} 個孤立節點）`
+                           : `（隱藏 ${c.isolated_nodes} 個孤立節點）`);
+  const sub = `資料快照 ${D.generated_at.slice(0,10)} · ` +
+    `節點顏色=tier，大小=utility，菱形=macro，邊顏色=provenance`;
+  probe.font = `600 17px ${SANS}`;  const titleW = probe.measureText(title).width;
+  probe.font = `11.5px ${SANS}`;    const subW   = probe.measureText(sub).width;
+
+  const HEAD = 118;                                   // 標題 + 圖例 + 分隔線的總高
+  const W = Math.ceil(Math.max(imgW / scale, titleW + 2*PAD, subW + 2*PAD,
+                               ...rowW.map(x => x + 2*PAD)));
+  const H = HEAD + imgH / scale;
+
+  const cv = el('canvas');
+  cv.width = Math.round(W * scale);
+  cv.height = Math.round(H * scale);
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);          // 以下全部用 CSS px 思考
+
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = FG;  ctx.font = `600 17px ${SANS}`;
+  ctx.fillText(title, PAD, 30);
+  ctx.fillStyle = DIM; ctx.font = `11.5px ${SANS}`;
+  ctx.fillText(sub, PAD, 51);
+
+  rows.forEach((row, ri) => {
+    const cyRow = 74 + ri * 22;
+    let x = PAD;
+    row.forEach(it => {
+      ctx.save();
+      if (it.off) ctx.globalAlpha = 0.36;
+      ctx.fillStyle = it.fill;
+      if (it.shape === 'line') {
+        ctx.fillRect(x, cyRow - LINE_H/2, LINE_W, LINE_H);
+      } else if (it.shape === 'diamond') {
+        ctx.beginPath();
+        ctx.moveTo(x + DIAG, cyRow - DIAG); ctx.lineTo(x + DIAG*2, cyRow);
+        ctx.lineTo(x + DIAG, cyRow + DIAG); ctx.lineTo(x, cyRow);
+        ctx.closePath(); ctx.fill();
+        if (it.stroke) { ctx.strokeStyle = it.stroke; ctx.lineWidth = 1; ctx.stroke(); }
+      } else {
+        ctx.fillRect(x, cyRow - SQ/2, SQ, SQ);
+        if (it.stroke) { ctx.strokeStyle = it.stroke; ctx.lineWidth = 1;
+                         ctx.strokeRect(x + 0.5, cyRow - SQ/2 + 0.5, SQ - 1, SQ - 1); }
+      }
+      const tx = x + swW(it) + SW_GAP;
+      ctx.fillStyle = FG; ctx.font = `12px ${SANS}`; ctx.textBaseline = 'middle';
+      ctx.fillText(it.text, tx, cyRow + 0.5);
+      if (it.off) {                                    // 對齊畫面上的 line-through
+        const tw = ctx.measureText(it.text).width;
+        ctx.fillRect(tx, cyRow, tw, 1);
+      }
+      ctx.textBaseline = 'alphabetic';
+      ctx.restore();
+      x += it.w + ITEM_GAP;
+    });
+  });
+
+  ctx.strokeStyle = BD; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(PAD, HEAD - 6.5); ctx.lineTo(W - PAD, HEAD - 6.5); ctx.stroke();
+  return { cv, ctx, W, H, HEAD };
+}
+
+function exportGraphPNG(scale){
+  let blob;
+  try {
+    blob = cy.png({ scale, full:true, bg:'#ffffff', output:'blob' });
+  } catch (e) {
+    alert('PNG 匯出失敗。請改用瀏覽器截圖（見 demo/export_figures.md）');
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = () => {
+    const { cv, ctx, W, HEAD } = graphHeaderCanvas(img.width, img.height, scale);
+    const gx = (W - img.width / scale) / 2;            // 圖例比圖寬時把圖置中
+    ctx.drawImage(img, gx, HEAD, img.width / scale, img.height / scale);
+    URL.revokeObjectURL(url);
+    cv.toBlob(b => {
+      const u = URL.createObjectURL(b);
+      dl(u, 'fig1_skill_graph.png');
+      setTimeout(() => URL.revokeObjectURL(u), 4000);
+    }, 'image/png');
+  };
+  img.onerror = () => { URL.revokeObjectURL(url);
+    alert('PNG 匯出失敗。請改用瀏覽器截圖（見 demo/export_figures.md）'); };
+  img.src = url;
+}
+
+function dl(href, name){
+  const a = el('a', { href, download:name });
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* =========================================================================
+   2. 語意檢索
+   ========================================================================= */
+(function retrieval(){
+  const c = Q.config;
+  $('#retrDesc').textContent =
+    `${Q.retrieval.length} 組查詢 · top_k=${c.top_k} · 於 ${Q.generated_at.slice(0,19).replace('T',' ')} 以 ` +
+    `demo/build_queries.py 預先算出（EmbeddingEngine 冷啟動一次，全部重用）`;
+  const list = $('#qlist');
+  Q.retrieval.forEach((r, i) => {
+    const b = el('button', { class:'qbtn' });
+    b.innerHTML = `<span class="qc">${r.cluster_hint} · ${fx(r.elapsed_seconds,2)}s</span>` +
+                  `<span class="qi">${String(i+1).padStart(2,'0')}</span>${r.query}`;
+    b.onclick = () => { document.querySelectorAll('.qbtn').forEach(x => x.classList.remove('on'));
+                        b.classList.add('on'); renderRetr(i); };
+    list.appendChild(b);
+    if (i === 0) { b.classList.add('on'); }
+  });
+  renderRetr(0);
+})();
+
+function renderRetr(i){
+  const r = Q.retrieval[i], c = Q.config;
+  const box = $('#qres'); box.innerHTML = '';
+  box.appendChild(el('div', { class:'formula',
+    html:`A(σ) = ${c.lambda1}·sim + ${c.lambda2}·U(σ) + ${c.lambda3}·centrality(σ)` +
+         `<span class="eq">論文 Eq. 20-21</span>` }));
+  box.appendChild(el('div', { class:'barkey', html:
+    `<span><i class="bs1"></i>${c.lambda1}·sim</span>` +
+    `<span><i class="bs2"></i>${c.lambda2}·U</span>` +
+    `<span><i class="bs3"></i>${c.lambda3}·centrality</span>` +
+    `<span style="color:var(--fg-faint)">橫條寬度 = 該項對 A(σ) 的實際貢獻</span>` }));
+
+  const maxA = Math.max(...r.results.map(x => x.activation_score));
+  const tb = el('table');
+  tb.appendChild(el('thead', { html:
+    '<tr><th style="width:22px">#</th><th>技能名</th><th class="num">A(σ)</th>' +
+    '<th style="width:196px">分項貢獻</th><th class="num">sim</th><th class="num">U</th>' +
+    '<th class="num">centrality</th><th class="num">l2_dist</th></tr>' }));
+  const tbody = el('tbody');
+  r.results.forEach((s, k) => {
+    const p1 = c.lambda1 * s.sim, p2 = c.lambda2 * s.utility, p3 = c.lambda3 * s.centrality;
+    const W = 190 / maxA;
+    const tr = el('tr');
+    tr.innerHTML =
+      `<td class="num" style="color:var(--fg-faint)">${k+1}</td>` +
+      `<td class="skillname">${s.name}</td>` +
+      `<td class="num"><b>${fx(s.activation_score,4)}</b></td>` +
+      `<td><span class="bar"><i class="bs1" style="width:${p1*W}px"></i>` +
+      `<i class="bs2" style="width:${p2*W}px"></i><i class="bs3" style="width:${p3*W}px"></i></span></td>` +
+      `<td class="num">${fx(s.sim,4)}</td><td class="num">${fx(s.utility,4)}</td>` +
+      `<td class="num">${fx(s.centrality,4)}</td><td class="num">${fx(s.l2_distance,4)}</td>`;
+    tbody.appendChild(tr);
+  });
+  tb.appendChild(tbody);
+  box.appendChild(tb);
+
+  box.appendChild(el('div', { class:'foot', html:
+    `查詢文字由 memory_planner._build_query_text() 組成：requirements_restatement + ` +
+    `${r.subtasks.length} 個 subtask description + domain(${r.domain.join(', ')})　·　` +
+    `本組耗時 ${fx(r.elapsed_seconds,2)}s　·　sim = 1 − d/2` }));
+
+  const bar = el('div', { style:'margin-top:10px' });
+  const bp = el('button', { text:'匯出本組 PNG' });
+  bp.onclick = () => exportSVG(activationSVG(r, c), 'fig4_activation.png');
+  bar.appendChild(bp);
+  box.appendChild(bar);
+}
+
+/* =========================================================================
+   3. 去重閘
+   ========================================================================= */
+(function dedup(){
+  const c = Q.config;
+  $('#dedupDesc').innerHTML =
+    `θdup = <b>${c.theta_dup}</b>（config.yaml: skill_validator.theta_dup）· ` +
+    `sim = 1 − d/2，d 是 LanceDB 在 l2 metric 下回傳的平方距離 d = 2 − 2·cos · ` +
+    `判定碼位 agents/skill_validator.py:345`;
+  const body = $('#dedupBody');
+  Q.dedup.forEach((d, i) => {
+    const box = el('div', { class:'dcase' });
+    box.appendChild(el('h3', { html:
+      `案例 ${i+1} · <span class="mono">${d.candidate_name}</span>` +
+      `<span class="lbl">${d.label}</span>` }));
+    box.appendChild(el('div', { class:'dq', text:'輸入描述：' + d.query }));
+
+    const ax = el('div', { class:'axis' });
+    const thr = c.theta_dup * 100;
+    ax.appendChild(el('div', { class:'track' }));
+    ax.appendChild(el('div', { class:'zone', style:`left:${thr}%;right:0` }));
+    ax.appendChild(el('div', { class:'thr', style:`left:${thr}%` }));
+    ax.appendChild(el('div', { class:'thrlab', style:`left:${thr}%`, text:`θdup=${c.theta_dup}` }));
+    [0,0.25,0.5,1].forEach(t => ax.appendChild(
+      el('div', { class:'tick', style:`left:${t*100}%`, text:t.toFixed(2) })));
+    const col = d.above_threshold ? 'var(--bad)' : 'var(--ok)';
+    ax.appendChild(el('div', { class:'mk', style:`left:${d.sim*100}%;background:${col}` }));
+    ax.appendChild(el('div', { class:'mklab', style:`left:${d.sim*100}%;color:${col}`,
+                               text:'sim=' + fx(d.sim,4) }));
+    box.appendChild(ax);
+
+    const t = el('table', { style:'margin-top:9px' });
+    t.innerHTML =
+      '<tbody>' +
+      `<tr><th style="width:150px">最相似的既有技能</th><td class="skillname">${d.closest}</td></tr>` +
+      `<tr><th>sim</th><td class="mono"><b>${fx(d.sim,4)}</b>　` +
+        `${d.above_threshold ? '&gt;' : '≤'} θdup=${c.theta_dup}</td></tr>` +
+      `<tr><th>判定</th><td><span class="verdict ${d.verdict==='rejected'?'v-rej':'v-acc'}">` +
+        `${d.verdict === 'rejected' ? 'REJECTED — 不插入技能庫' : 'ACCEPTED — 可插入技能庫'}</span></td></tr>` +
+      (d.reason ? `<tr><th>validator 回傳</th><td style="font-size:11px;color:var(--fg-dim)">${d.reason}</td></tr>` : '') +
+      `<tr><th>備註</th><td style="font-size:11px;color:var(--fg-dim)">${d.note}</td></tr>` +
+      '</tbody>';
+    box.appendChild(t);
+    body.appendChild(box);
+  });
+
+  const pool = el('div', { class:'card', style:'margin-top:4px' });
+  pool.appendChild(el('h3', { text:'候選池全量量測（挑出上面 4 組之前）' }));
+  const pt = el('table');
+  pt.innerHTML = '<thead><tr><th>case_id</th><th>最相似技能</th><th class="num">sim</th><th>判定</th></tr></thead>' +
+    '<tbody>' + Q.dedup_pool_measured.map(m =>
+      `<tr><td class="mono">${m.case_id}</td><td class="skillname">${m.closest}</td>` +
+      `<td class="num">${fx(m.sim,4)}</td>` +
+      `<td><span class="verdict ${m.verdict==='rejected'?'v-rej':'v-acc'}">${m.verdict}</span></td></tr>`
+    ).join('') + '</tbody>';
+  pool.appendChild(pt);
+  pool.appendChild(el('div', { class:'foot', text:
+    '6 組候選中只有 1 組（真實案例）越過 θdup。其餘 5 組的 sim 都落在 0.35–0.66，' +
+    '沒有任何合成案例落進 0.75–0.92 這個區間 —— 這是實測結果，不是挑選出來的。' }));
+  body.appendChild(pool);
+})();
+
+/* =========================================================================
+   4. 長跑回放
+   ========================================================================= */
+let RI = 0;
+(function replay(){
+  const A = D.run.attempts, c = D.counts;
+  $('#runId').textContent = D.run.run_id;
+  $('#replayHead').textContent =
+    `${A.length} 題 · ${D.run.manifest.started_at ? D.run.manifest.started_at.slice(0,19).replace('T',' ') : ''}`;
+  $('#replayNote').innerHTML =
+    `<b>verified ${c.verified_independent_true}/${c.verified_independent_total} = ` +
+    `${pct(c.verified_independent_true / c.verified_independent_total)}</b><br>` +
+    `分母是有可用獨立 oracle 的題數(${c.verified_independent_total})，不是總題數(${A.length})。` +
+    `7 題 verification_status = verified_liveness，排除在分母外。`;
+  $('#rOf').textContent = `/ ${A.length}`;
+  $('#rJump').max = A.length;
+  $('#rPrev').onclick = () => go(RI - 1);
+  $('#rNext').onclick = () => go(RI + 1);
+  $('#rJump').onchange = e => go(parseInt(e.target.value, 10) - 1);
+  renderReplay();
+})();
+function go(i){
+  const A = D.run.attempts;
+  RI = Math.max(0, Math.min(A.length - 1, i));
+  $('#rJump').value = RI + 1;
+  renderReplay();
+}
+function renderReplay(){
+  const a = D.run.attempts[RI];
+  const t = T[a.task_id] || {};
+  const box = $('#replayBody'); box.innerHTML = '';
+
+  const vs = a.verified_success;
+  const vpill = (v, na) => na ? '<span class="pill p-na">n/a</span>'
+    : (v ? '<span class="pill p-ok">true</span>' : '<span class="pill p-bad">false</span>');
+  const liveness = a.verification_status === 'verified_liveness';
+
+  const head = el('div', { class:'card', style:'margin-bottom:12px' });
+  head.innerHTML =
+    `<div style="display:flex;gap:14px;align-items:baseline;flex-wrap:wrap">` +
+    `<span class="mono" style="font-size:13px;font-weight:600">#${a.attempt_no} ${t.title || ''}</span>` +
+    `<span class="badge">${a.task_id}</span>` +
+    `<span class="badge">cluster ${a.cluster}</span>` +
+    `<span class="badge">level ${a.level}</span>` +
+    `<span class="badge">${a.domain}</span>` +
+    `<span class="badge">${a.path_id.split('-').pop()} pos ${a.path_pos}</span></div>` +
+    `<div style="margin-top:7px;font-size:12px;line-height:1.55">${t.task_description || '（tasks.jsonl 無此題描述）'}</div>`;
+  box.appendChild(head);
+
+  const g = el('div', { class:'grid2' });
+
+  const c1 = el('div', { class:'card' });
+  c1.appendChild(el('h3', { text:`A2 檢索到的 ${a.skills_used.length} 個技能` }));
+  const ol = el('ol', { class:'sk' });
+  a.skills_used.forEach(s => ol.appendChild(el('li', { text:s })));
+  c1.appendChild(ol);
+  c1.appendChild(el('div', { class:'foot', text:
+    '這是 A2 依 Activation Score 檢索出來的 top-6，不是 agent 實際引用的（agent_runner.py:501）' }));
+  g.appendChild(c1);
+
+  const c2 = el('div', { class:'card' });
+  c2.appendChild(el('h3', { text:'三層 success' }));
+  c2.innerHTML += `<dl class="kv">
+    <dt>pipeline_success</dt><dd>${vpill(a.pipeline_success)}</dd>
+    <dt>execution_completed</dt><dd>${vpill(a.execution_completed)}</dd>
+    <dt>verified_success</dt><dd>${vpill(vs, liveness)}</dd>
+    <dt>verification_status</dt><dd>${a.verification_status}</dd>
+    <dt>verify_detail</dt><dd style="word-break:break-word">${a.verify_detail || '—'}</dd>
+    <dt>stage_status</dt><dd>${Object.entries(a.stage_status).map(([k,v]) =>
+        `${k}=${v}`).join('　')}</dd></dl>` +
+    (liveness ? `<div class="foot" style="color:var(--warn)">verified_liveness：無可用獨立 oracle，排除在 74% 的分母外</div>` : '');
+  g.appendChild(c2);
+
+  const c3 = el('div', { class:'card' });
+  c3.appendChild(el('h3', { text:'produced_skills（A3 通過驗證的新技能）' }));
+  if (a.produced_skills.length) {
+    const o2 = el('ol', { class:'sk' });
+    a.produced_skills.forEach(s => o2.appendChild(el('li', { text:s })));
+    c3.appendChild(o2);
+  } else {
+    c3.appendChild(el('div', { style:'color:var(--fg-faint);font-family:var(--mono);font-size:11.5px',
+                               text:'（這題沒有產出通過驗證的新技能）' }));
+  }
+  g.appendChild(c3);
+
+  const c4 = el('div', { class:'card' });
+  c4.appendChild(el('h3', { text:'成本' }));
+  c4.innerHTML += `<dl class="kv">
+    <dt>elapsed_seconds</dt><dd>${fx(a.elapsed_seconds,2)}</dd>
+    <dt>llm_calls</dt><dd>${a.llm_calls}</dd>
+    <dt>tool_calls</dt><dd>${a.tool_calls}</dd>
+    <dt>total_steps</dt><dd>${a.total_steps}</dd>
+    <dt>prompt_tokens</dt><dd>${a.prompt_tokens.toLocaleString()}</dd>
+    <dt>completion_tokens</dt><dd>${a.completion_tokens.toLocaleString()}</dd>
+    <dt>error_stage</dt><dd>${a.error_stage || '—'}</dd></dl>`;
+  g.appendChild(c4);
+
+  box.appendChild(g);
+
+  const strip = D.run.attempts.map((x, i) => {
+    const col = x.verification_status === 'verified_liveness' ? '#b5b2ab'
+      : (x.verified_success ? '#2f7a5e' : '#a8342c');
+    return `<i title="#${x.attempt_no} ${x.verification_status}" data-i="${i}" ` +
+           `style="display:inline-block;width:9px;height:13px;background:${col};` +
+           `margin-right:2px;cursor:pointer;${i===RI?'outline:2px solid #1c1c1b;outline-offset:1px':''}"></i>`;
+  }).join('');
+  $('#rNav').innerHTML = strip;
+  $('#rNav').querySelectorAll('i').forEach(n => n.onclick = () => go(+n.dataset.i));
+}
+
+/* =========================================================================
+   5. 成長曲線（純 SVG）
+   ========================================================================= */
+const CH = [
+  { key:'nodes',        title:'節點數',   fmt:v => v,            src:g => g.nodes },
+  { key:'edges',        title:'邊數',     fmt:v => v,            src:g => g.edges },
+  { key:'isolate_ratio',title:'孤島率',   fmt:v => pct(v),       src:g => g.isolate_ratio },
+  { key:'verified',     title:'verified 率（累計）', fmt:v => pct(v), src:null }
+];
+(function growth(){
+  const cks = D.run.checkpoints;
+  $('#growthDesc').textContent =
+    `x 軸 = 完成題數；節點/邊/孤島率取每個 checkpoint 的 graph_after_phi；` +
+    `verified 率為累計至該題為止、分母排除 verified_liveness 的比率。純 SVG 繪製，未使用圖表函式庫。`;
+  const A = D.run.attempts;
+  const verRate = cks.map(c => {
+    const upto = A.slice(0, c.checkpoint)
+                  .filter(a => a.verification_status === 'verified_independent');
+    return upto.length ? upto.filter(a => a.verified_success === true).length / upto.length : 0;
+  });
+  const wrap = $('#charts');
+  CH.forEach((ch, ci) => {
+    const xs = cks.map(c => c.checkpoint);
+    const ys = ch.key === 'verified' ? verRate : cks.map(c => ch.src(c.graph_after_phi));
+    const card = el('div', { class:'chart' });
+    const hd = el('div', { class:'ch' });
+    hd.appendChild(el('h3', { text:`${ci+1}. ${ch.title}` }));
+    const b = el('button', { text:'匯出 PNG' });
+    b.onclick = () => exportSVG(lineSVG(xs, ys, ch, 620, 360), `fig_growth_${ch.key}.png`);
+    hd.appendChild(b);
+    card.appendChild(hd);
+    // SVG 另外掛在自己的容器，避免 innerHTML 重寫 card 時洗掉按鈕的事件處理器
+    const svgBox = el('div');
+    svgBox.innerHTML = lineSVG(xs, ys, ch, 480, 230);
+    card.appendChild(svgBox);
+    wrap.appendChild(card);
+  });
+  const all = el('div', { style:'margin-top:12px' });
+  const ab = el('button', { text:'匯出四宮格 PNG (fig2_growth.png)' });
+  ab.onclick = () => {
+    const xsAll = cks.map(c => c.checkpoint);
+    const series = CH.map(ch => ({
+      ch, xs:xsAll,
+      ys: ch.key === 'verified' ? verRate : cks.map(c => ch.src(c.graph_after_phi))
+    }));
+    exportSVG(quadSVG(series), 'fig2_growth.png');
+  };
+  all.appendChild(ab);
+  wrap.parentNode.appendChild(all);
+})();
+
+function axisTicks(min, max, n){
+  const out = [];
+  for (let i = 0; i <= n; i++) out.push(min + (max - min) * i / n);
+  return out;
+}
+function lineSVG(xs, ys, ch, W, H){
+  // b 從 26 加到 40：刻度數字留在原本的位置，軸標題另起一行置中放在圖下方，
+  // 否則「題數」（原本畫在 x=m.l）會和第一個刻度「10」（X(xs[0]) 也等於 m.l）重疊。
+  const m = { l:52, r:14, t:10, b:40 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const yMax = ch.key === 'isolate_ratio' || ch.key === 'verified' ? 1 : Math.max(...ys) * 1.12;
+  const yMin = 0;
+  const X = v => m.l + (v - xs[0]) / (xs[xs.length-1] - xs[0]) * iw;
+  const Y = v => m.t + ih - (v - yMin) / (yMax - yMin) * ih;
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  s += `<rect width="${W}" height="${H}" fill="#ffffff"/>`;
+  axisTicks(yMin, yMax, 4).forEach(t => {
+    s += `<line x1="${m.l}" y1="${Y(t).toFixed(1)}" x2="${W-m.r}" y2="${Y(t).toFixed(1)}" stroke="#e8e6e1"/>`;
+    const lab = (ch.key === 'isolate_ratio' || ch.key === 'verified')
+      ? (t*100).toFixed(0) + '%' : Math.round(t);
+    s += `<text x="${m.l-6}" y="${(Y(t)+3.5).toFixed(1)}" font-size="10" font-family="monospace" ` +
+         `fill="#8a8881" text-anchor="end">${lab}</text>`;
+  });
+  s += `<line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${m.t+ih}" stroke="#b5b2ab"/>`;
+  s += `<line x1="${m.l}" y1="${m.t+ih}" x2="${W-m.r}" y2="${m.t+ih}" stroke="#b5b2ab"/>`;
+  xs.forEach(x => s += `<text x="${X(x).toFixed(1)}" y="${H-m.b+16}" font-size="10" font-family="monospace" ` +
+    `fill="#8a8881" text-anchor="middle">${x}</text>`);
+  const pts = xs.map((x,i) => `${X(x).toFixed(1)},${Y(ys[i]).toFixed(1)}`).join(' ');
+  s += `<polyline points="${pts}" fill="none" stroke="#2d5d7c" stroke-width="1.8"/>`;
+  xs.forEach((x,i) => {
+    s += `<circle cx="${X(x).toFixed(1)}" cy="${Y(ys[i]).toFixed(1)}" r="3" fill="#2d5d7c"/>`;
+    s += `<text x="${X(x).toFixed(1)}" y="${(Y(ys[i])-8).toFixed(1)}" font-size="10" ` +
+         `font-family="monospace" fill="#1c1c1b" text-anchor="middle">${ch.fmt(ys[i])}</text>`;
+  });
+  s += `<text x="${(m.l + iw/2).toFixed(1)}" y="${H-6}" font-size="9.5" font-family="sans-serif" ` +
+       `fill="#8a8881" text-anchor="middle">題數</text>`;
+  s += `</svg>`;
+  return s;
+}
+function quadSVG(series){
+  const W = 1180, H = 700, cw = W/2, chh = (H-38)/2;
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  s += `<rect width="${W}" height="${H}" fill="#ffffff"/>`;
+  s += `<text x="18" y="24" font-size="15" font-family="sans-serif" font-weight="600" fill="#1c1c1b">` +
+       `SIES — 技能圖成長曲線（${D.run.run_id}，5 個 checkpoint）</text>`;
+  series.forEach((sr, i) => {
+    const ox = (i % 2) * cw, oy = 38 + Math.floor(i/2) * chh;
+    // 高度扣掉子標題那 14px 的 translate，否則每格內容會溢出一格高度，
+    // 下排兩張的 x 軸刻度與軸標題會被畫布下緣切掉。
+    const inner = lineSVG(sr.xs, sr.ys, sr.ch, cw, chh - 14)
+      .replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '')
+      .replace(/<rect width="[^"]*" height="[^"]*" fill="#ffffff"\/>/, '');
+    s += `<g transform="translate(${ox},${oy})">`;
+    s += `<text x="52" y="14" font-size="12" font-family="sans-serif" font-weight="600" ` +
+         `fill="#1c1c1b">${i+1}. ${sr.ch.title}</text>`;
+    s += `<g transform="translate(0,14)">${inner}</g></g>`;
+  });
+  s += `</svg>`;
+  return s;
+}
+function activationSVG(r, c){
+  const rows = r.results, W = 1080, rowH = 30, H = 150 + rows.length * rowH;
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  s += `<rect width="${W}" height="${H}" fill="#ffffff"/>`;
+  s += `<text x="20" y="28" font-size="15" font-family="sans-serif" font-weight="600" fill="#1c1c1b">` +
+       `A2 語意檢索 — Activation Score 拆解</text>`;
+  s += `<text x="20" y="49" font-size="12" font-family="monospace" fill="#5f5e59">query: ${esc(r.query)}</text>`;
+  s += `<text x="20" y="70" font-size="12" font-family="monospace" fill="#1c1c1b">` +
+       `A(σ) = ${c.lambda1}·sim + ${c.lambda2}·U(σ) + ${c.lambda3}·centrality(σ)   [Eq. 20-21]</text>`;
+  const cols = [[20,'技能名'],[470,'A(σ)'],[540,'分項貢獻'],[830,'sim'],[905,'U'],[980,'centrality']];
+  cols.forEach(([x,t]) => s += `<text x="${x}" y="97" font-size="11" font-family="sans-serif" ` +
+    `font-weight="600" fill="#5f5e59">${t}</text>`);
+  s += `<line x1="20" y1="103" x2="${W-20}" y2="103" stroke="#b5b2ab"/>`;
+  const maxA = Math.max(...rows.map(x => x.activation_score)), BW = 270;
+  rows.forEach((x, i) => {
+    const y = 103 + (i+1) * rowH;
+    const p1 = c.lambda1*x.sim, p2 = c.lambda2*x.utility, p3 = c.lambda3*x.centrality;
+    const sc = BW / maxA;
+    s += `<text x="20" y="${y-8}" font-size="11" font-family="monospace" fill="#1c1c1b">${esc(x.name)}</text>`;
+    s += `<text x="520" y="${y-8}" font-size="11" font-family="monospace" fill="#1c1c1b" ` +
+         `text-anchor="end" font-weight="600">${x.activation_score.toFixed(4)}</text>`;
+    let cx = 540;
+    [[p1,'#2d5d7c'],[p2,'#7fa3ba'],[p3,'#c3d3dd']].forEach(([p,col]) => {
+      const w = p * sc;
+      s += `<rect x="${cx.toFixed(1)}" y="${y-19}" width="${w.toFixed(1)}" height="14" fill="${col}"/>`;
+      cx += w;
+    });
+    s += `<rect x="540" y="${y-19}" width="${BW}" height="14" fill="none" stroke="#d8d6d1"/>`;
+    [[880,x.sim],[955,x.utility],[1050,x.centrality]].forEach(([px,v]) =>
+      s += `<text x="${px}" y="${y-8}" font-size="11" font-family="monospace" fill="#1c1c1b" ` +
+           `text-anchor="end">${v.toFixed(4)}</text>`);
+    s += `<line x1="20" y1="${y-2}" x2="${W-20}" y2="${y-2}" stroke="#e8e6e1"/>`;
+  });
+  const fy = 103 + (rows.length+1) * rowH + 8;
+  s += `<rect x="540" y="${fy-11}" width="14" height="11" fill="#2d5d7c"/>` +
+       `<text x="560" y="${fy-1}" font-size="10.5" font-family="sans-serif" fill="#5f5e59">${c.lambda1}·sim</text>` +
+       `<rect x="640" y="${fy-11}" width="14" height="11" fill="#7fa3ba"/>` +
+       `<text x="660" y="${fy-1}" font-size="10.5" font-family="sans-serif" fill="#5f5e59">${c.lambda2}·U</text>` +
+       `<rect x="726" y="${fy-11}" width="14" height="11" fill="#c3d3dd"/>` +
+       `<text x="746" y="${fy-1}" font-size="10.5" font-family="sans-serif" fill="#5f5e59">${c.lambda3}·centrality</text>`;
+  s += `<text x="20" y="${fy-1}" font-size="10.5" font-family="sans-serif" fill="#8a8881">` +
+       `預先計算的結果快照，非即時查詢　·　sim = 1 − d/2</text>`;
+  s += `</svg>`;
+  return s;
+}
+function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function exportSVG(svg, name){
+  const img = new Image();
+  const blob = new Blob([svg], { type:'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  img.onload = () => {
+    const m = svg.match(/width="(\d+)" height="(\d+)"/);
+    const w = +m[1], h = +m[2], S = 3;
+    const cv = el('canvas'); cv.width = w*S; cv.height = h*S;
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.setTransform(S,0,0,S,0,0);
+    ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+    dl(cv.toDataURL('image/png'), name);
+  };
+  img.onerror = () => { URL.revokeObjectURL(url);
+    alert('PNG 匯出失敗。請改用瀏覽器截圖（見 demo/export_figures.md）'); };
+  img.src = url;
+}
+
+/* =========================================================================
+   6. 演化日誌
+   ========================================================================= */
+(function eslog(){
+  const L = D.evolution_log, c = D.counts;
+  $('#eslogDesc').textContent =
+    `每一列 = 一次 EvolutionOperator.evolve()，依序跑 Φ-i → Φ-ii → Φ-iii → Φ-iv（evolution_operator.py:137）`;
+  const body = $('#eslogBody');
+  const t = el('table');
+  t.innerHTML = '<thead><tr><th style="width:26px">#</th><th>時間</th>' +
+    '<th class="num">插入</th><th class="num">駁回</th><th class="num">macro</th>' +
+    '<th class="num">tier遷移</th><th class="num">衰減</th><th class="num">候選</th>' +
+    '<th class="num">節點</th><th class="num">秒</th><th>triggered_by</th></tr></thead>' +
+    '<tbody>' + L.map((r, i) => {
+      const macro = r.macro_skills_created || 0;
+      return `<tr${macro ? ' style="background:#eff6f2"' : ''}>` +
+        `<td class="num" style="color:var(--fg-faint)">${i+1}</td>` +
+        `<td class="mono" style="font-size:11px">${r.timestamp.slice(0,19).replace('T',' ')}</td>` +
+        `<td class="num">${r.inserted_count || 0}</td>` +
+        `<td class="num">${r.rejected_count || 0}</td>` +
+        `<td class="num"${macro ? ' style="font-weight:600;color:var(--ok)"' : ''}>${macro}</td>` +
+        `<td class="num">${r.tier_migrations || 0}</td>` +
+        `<td class="num">${r.decay_count || 0}</td>` +
+        `<td class="num">${r.candidates_found || 0}</td>` +
+        `<td class="num" style="color:var(--fg-dim)">${r.graph_nodes_before}→${r.graph_nodes_after}</td>` +
+        `<td class="num">${fx(r.elapsed_seconds,1)}</td>` +
+        `<td class="mono" style="font-size:11px">${JSON.stringify(r.triggered_by)}</td></tr>`;
+    }).join('') + '</tbody>';
+  body.appendChild(t);
+
+  const st = el('div', { class:'card', style:'margin-top:12px' });
+  st.appendChild(el('h3', { text:'累計統計' }));
+  st.innerHTML += `<dl class="kv" style="grid-template-columns:auto 1fr auto 1fr">
+    <dt>技能插入</dt><dd><b>${c.skills_inserted_total}</b></dd>
+    <dt>技能駁回</dt><dd><b>${c.skills_rejected_total}</b>（θdup=${Q.config.theta_dup}）</dd>
+    <dt>macro 建立</dt><dd><b>4</b> 次，但圖上只有 <b>${c.macros}</b> 個（同名覆寫）</dd>
+    <dt>tier 遷移</dt><dd><b>${c.tier_migrations_total}</b></dd>
+    <dt>效用衰減</dt><dd><b>667</b></dd>
+    <dt>evolve 呼叫</dt><dd><b>${c.evolve_calls}</b></dd></dl>`;
+  body.appendChild(st);
+
+  const w = el('div', { class:'note', style:'margin-top:12px;border-left-color:var(--bad)' });
+  w.innerHTML =
+    `<b>19 次的 triggered_by 全部是 ["force"]。</b><br>` +
+    `T1/T2/T3 三個自動觸發條件（config.yaml: evolution.triggers）在專案歷史中<b>未曾自行觸發</b>。` +
+    `唯一讀取那四個鍵的 <span class="mono">EvolutionTriggers</span> 類別在專案中沒有任何呼叫端 —— ` +
+    `所有命中都在它自己的檔案內（docstring 範例、class 定義、log 字串）。`;
+  body.appendChild(w);
+})();
+
+/* =========================================================================
+   7. 誠實牆
+   ========================================================================= */
+const HONEST = [
+  ['技能庫隨執行成長','ok','90 → 110 節點','GRAPH_INDEX','Φ-ii 插入 21 個新技能'],
+  ['記憶分層遷移運作','ok','567 次','evolution_log','Φ-iv 四閾值磁滯'],
+  ['三層 success 可獨立驗證','ok','32/43 = 74.4%','run_summary','分母排除無 oracle 的 7 題'],
+  ['去重閘阻擋重複技能','ok','駁回 14 次','evolution_log','θdup=0.75'],
+  ['Φ-iii 子圖收縮','warn','歷史 2 次，長跑 0 次','macro SKILL.md','生於 04-28 / 05-17'],
+  ['系統學會技能間關聯','no','216 條邊中 0 條','邊的 provenance','206 條是課程結構機械落地'],
+  ['技能庫提升任務通過率','warn','有 32/43 vs 無 32/43，皆 74.4%','NOSKILL_CONTROL (09-17)',
+   '逐題一致僅 33/43=76.7%，5 題 T→F、5 題 F→T；效果小於 LLM 隨機性'],
+  ['技能注入的成本可量測','ok','prompt token −19.8%','NOSKILL_CONTROL (09-17)',
+   '平均 21,188 → 16,985；llm_calls/steps/tool_calls 中位數不變'],
+  ['容量上限 (Prop 1)','no','未實作','config 死鍵','max_skills 從未被讀取'],
+  ['T1/T2/T3 接線與觸發原因紀錄','ok','已完成','evolution_triggers.py',
+   '兩個 runner 都接上，triggered_by 正確記錄'],
+  ['T3 能辨識有意義的演化時機','no','判定恆為真','T3_TRIGGER_RATE (09-16)',
+   '預設 100 檔視窗下兩個動作序列過門檻；第 1 題即觸發、50 題全中；無最小樣本下限'],
+  ['自動排程能改善系統效果','warn','尚未證明','—',
+   '需要「自動觸發 vs 固定間隔」對照，本研究未做']
+];
+const MARK = { ok:'✅', warn:'⚠️', no:'❌' };
+/* 誠實牆下方的兩段說明。資料快照仍是 2026-09-13，這兩段引用的是 09-17 / 09-16
+   的後續實驗，對應列已在「證據來源」欄標明日期。 */
+const HWNOTES = [
+  '本研究以同一批 50 題凍結題庫做了停用技能庫的對照。兩組的獨立驗證通過率同為 32/43，' +
+  '但逐題只有 33/43 一致 —— 5 題由成功轉失敗、5 題由失敗轉成功，方向對稱。' +
+  '這代表在這份題庫上，技能庫的效果小於語言模型本身的隨機性；單次 n=50 無法把兩者分開。',
+
+  '值得注意的是偏誤方向：該題庫由課程模組依當時的技能庫生成，最自然的讀法是它偏向有技能組。' +
+  '有技能組仍未勝出，因此這個否定結果若有偏誤，方向是使其更保守。',
+
+  'T3 的判定是「某個 2–4 個連續動作的組合出現在超過 30% 的紀錄裡」。' +
+  '在預設的 100 檔視窗下，code_execution → finish（65.3%）與 bash_execution → code_execution（39.8%）' +
+  '都過門檻，且沒有最小樣本下限。因此它量到的是這批任務的常見操作流程，' +
+  '不是技能層級的共現訊號 —— 而後者才是 Φ-iii 需要的。'
+];
+const QUOTE =
+  '技能圖的節點數與邊數不是學習訊號，除非能把機械產生的部分扣除。' +
+  '本系統把每條邊標記來源，並在評估時只採計非機械產生的邊——' +
+  '依此定義，目前學習到的邊為 0。';
+(function honest(){
+  const body = $('#honestBody');
+  const t = el('table', { class:'hw' });
+  t.innerHTML = '<thead><tr><th style="width:40px"></th><th>宣稱</th><th>數值</th>' +
+    '<th>證據來源</th><th>說明</th></tr></thead><tbody>' +
+    HONEST.map(([claim, st, val, src, note]) =>
+      `<tr class="s-${st}"><td class="st">${MARK[st]}</td><td class="claim">${claim}</td>` +
+      `<td class="mono">${val}</td><td class="mono" style="font-size:11px">${src}</td>` +
+      `<td style="color:var(--fg-dim)">${note}</td></tr>`).join('') + '</tbody>';
+  body.appendChild(t);
+  body.appendChild(el('div', { class:'hwnote', html: HWNOTES.map(p => `<p>${p}</p>`).join('') }));
+  body.appendChild(el('div', { class:'quote', text:QUOTE }));
+  body.appendChild(el('div', { class:'foot', html:
+    `資料來源：skills/GRAPH_INDEX.md · memory/episodic/evolution_log.jsonl · ` +
+    `memory/episodic/run_summary.jsonl · data/w16/runs/${D.run.run_id}/ · config.yaml · ` +
+    `docs/NOSKILL_CONTROL_20260917.md · docs/T3_TRIGGER_RATE_20260916.md　` +
+    `全部可用 <span class="mono">python scripts/sies_doctor.py</span> 重現` }));
+  $('#btnPngHonest').onclick = () => exportSVG(honestSVG(), 'fig3_honest_table.png');
+})();
+function honestSVG(){
+  // 欄位起點隨新增列的長字串放寬：「有 32/43 vs 無 32/43，皆 74.4%」約 205px，
+  // 原本 330→500 的 170px 會壓到「證據來源」欄。
+  // top 104 → 124：每列的底色帶是 [y-22, y+9]，104 會讓首列的帶子與文字上緣
+  // 壓在 y=95 的表頭分隔線上。124 讓帶子從 102 才開始。
+  const W = 1280, rowH = 34, top = 124, H = top + HONEST.length*rowH + 150;
+  const cx = [26, 74, 300, 520, 712];
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  s += `<rect width="${W}" height="${H}" fill="#ffffff"/>`;
+  s += `<text x="26" y="34" font-size="17" font-family="sans-serif" font-weight="600" fill="#1c1c1b">` +
+       `SIES 誠實牆 — 宣稱 vs 證據</text>`;
+  s += `<text x="26" y="56" font-size="11.5" font-family="sans-serif" fill="#5f5e59">` +
+       `每一條都指向可重跑的資料來源。做不到的直接標 ❌，不做模糊化。` +
+       `資料快照 ${esc(D.generated_at.slice(0,19).replace('T',' '))}</text>`;
+  ['', '宣稱', '數值', '證據來源', '說明']
+    .forEach((t0, i) => { s += `<text x="${cx[i]}" y="88" font-size="12" font-family="sans-serif" ` +
+      `font-weight="600" fill="#5f5e59">${t0}</text>`; });
+  s += `<line x1="26" y1="95" x2="${W-26}" y2="95" stroke="#b5b2ab" stroke-width="1.2"/>`;
+  HONEST.forEach(([claim, st, val, src, note], i) => {
+    const y = top + i*rowH;
+    if (st === 'no') s += `<rect x="26" y="${y-22}" width="${W-52}" height="${rowH-3}" fill="#fdf6f5"/>`;
+    s += `<text x="${cx[0]}" y="${y}" font-size="14" font-family="sans-serif">${MARK[st]}</text>`;
+    s += `<text x="${cx[1]}" y="${y}" font-size="12.5" font-family="sans-serif" font-weight="600" fill="#1c1c1b">${esc(claim)}</text>`;
+    s += `<text x="${cx[2]}" y="${y}" font-size="12" font-family="monospace" fill="#1c1c1b">${esc(val)}</text>`;
+    s += `<text x="${cx[3]}" y="${y}" font-size="11" font-family="monospace" fill="#5f5e59">${esc(src)}</text>`;
+    s += `<text x="${cx[4]}" y="${y}" font-size="11.5" font-family="sans-serif" fill="#5f5e59">${esc(note)}</text>`;
+    s += `<line x1="26" y1="${y+9}" x2="${W-26}" y2="${y+9}" stroke="#e8e6e1"/>`;
+  });
+  const qy = top + HONEST.length*rowH + 34;
+  s += `<rect x="26" y="${qy-22}" width="${W-52}" height="86" fill="#ffffff" stroke="#d8d6d1"/>`;
+  s += `<rect x="26" y="${qy-22}" width="3" height="86" fill="#2d5d7c"/>`;
+  const parts = ['技能圖的節點數與邊數不是學習訊號，除非能把機械產生的部分扣除。',
+                 '本系統把每條邊標記來源，並在評估時只採計非機械產生的邊——',
+                 '依此定義，目前學習到的邊為 0。'];
+  parts.forEach((p, i) => s += `<text x="46" y="${qy+4+i*25}" font-size="13.5" ` +
+    `font-family="sans-serif" fill="#1c1c1b">${esc(p)}</text>`);
+  s += `</svg>`;
+  return s;
+}
+
+/* 初始 */
+show('graph');
+</script>
+</body>
+</html>
